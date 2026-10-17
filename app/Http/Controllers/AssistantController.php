@@ -16,9 +16,15 @@ class AssistantController extends Controller
     public function index(Request $request, QuotaService $quota, AiStatus $status)
     {
         $snapshot = $status->snapshot();
+        $user = $request->user();
+        $credits = $quota->creditsRemaining($user);
+        $user->unsetRelation('subscription');
+        $subscription = $user->subscription()->with('plan')->first();
 
         return view('assistant.index', [
-            'credits' => $quota->creditsRemaining($request->user()),
+            'credits' => $credits,
+            'creditAllowance' => (int) ($subscription?->plan?->ai_credits ?? 0),
+            'creditsResetAt' => $subscription?->credits_reset_at,
             'resumes' => $request->user()->resumes()->orderBy('title')->get(),
             'configured' => app(AiCareerService::class)->configured(),
             'providers' => $snapshot['providers'],

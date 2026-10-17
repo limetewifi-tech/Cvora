@@ -6,6 +6,7 @@ use App\Exceptions\PaymentException;
 use App\Models\Plan;
 use App\Models\Transaction;
 use App\Services\Billing\PaymentService;
+use App\Services\Billing\QuotaService;
 use Illuminate\Http\Request;
 
 class BillingController extends Controller
@@ -14,6 +15,12 @@ class BillingController extends Controller
     {
         $user = $request->user();
         $user->load('subscription.plan');
+
+        if ($user->subscription) {
+            app(QuotaService::class)->refreshCredits($user->subscription);
+            $user->unsetRelation('subscription');
+            $user->load('subscription.plan');
+        }
 
         return view('billing.index', [
             'plans' => Plan::query()->active()->orderBy('sort_order')->get(),

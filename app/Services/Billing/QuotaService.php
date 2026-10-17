@@ -99,9 +99,21 @@ class QuotaService
     public function refreshCredits(Subscription $subscription): Subscription
     {
         $subscription->loadMissing('plan');
+        $allowance = (int) ($subscription->plan?->ai_credits ?? 0);
 
-        if ($subscription->credits_reset_at && $subscription->credits_reset_at->isPast()) {
-            $subscription->credits_remaining = (int) ($subscription->plan?->ai_credits ?? 0);
+        if ($subscription->credits_reset_at === null) {
+            if ((int) $subscription->credits_remaining === 0 && $allowance > 0) {
+                $subscription->credits_remaining = $allowance;
+            }
+
+            $subscription->credits_reset_at = now()->addMonth();
+            $subscription->save();
+
+            return $subscription;
+        }
+
+        if ($subscription->credits_reset_at->isPast()) {
+            $subscription->credits_remaining = $allowance;
             $subscription->credits_reset_at = now()->addMonth();
             $subscription->save();
         }
