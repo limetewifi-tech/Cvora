@@ -15,11 +15,15 @@ class AssistantController extends Controller
 {
     public function index(Request $request, QuotaService $quota, AiStatus $status)
     {
+        $snapshot = $status->snapshot();
+
         return view('assistant.index', [
             'credits' => $quota->creditsRemaining($request->user()),
             'resumes' => $request->user()->resumes()->orderBy('title')->get(),
             'configured' => app(AiCareerService::class)->configured(),
-            'providers' => $status->snapshot()['providers'],
+            'providers' => $snapshot['providers'],
+            'driver' => $snapshot['driver'],
+            'driverSupported' => $snapshot['driver_supported'],
         ]);
     }
 

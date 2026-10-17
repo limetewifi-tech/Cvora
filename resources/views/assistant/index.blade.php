@@ -8,9 +8,11 @@
             <li class="card"><div class="card-body py-3">{{ $name }} · {{ ['configured' => 'configuré', 'incomplete' => 'incomplet', 'absent' => 'non configuré'][$provider['state']] }} · clé {{ $provider['key_present'] ? 'présente' : 'absente' }} · modèle {{ $provider['model'] !== '' ? $provider['model'] : 'absent' }}</div></li>
         @endforeach
     </ul>
-    @unless ($configured)
-        <div class="alert alert-warning mt-3">Le fournisseur sélectionné est incomplet ou non configuré. Une clé seule ne suffit pas : l'identifiant de modèle doit aussi être renseigné sur le serveur. Aucune clé n'est envoyée au navigateur.</div>
-    @endunless
+    @if (! $driverSupported)
+        <div class="alert alert-warning mt-3" role="status">Le fournisseur « {{ $driver }} » n'est pas pris en charge. Utilisez anthropic, gemini ou groq. Aucun autre fournisseur n'est appelé.</div>
+    @elseif (! $configured)
+        <div class="alert alert-warning mt-3" role="status">Le fournisseur sélectionné est incomplet ou non configuré. Une clé seule ne suffit pas : l'identifiant de modèle doit aussi être renseigné sur le serveur. Aucune clé n'est envoyée au navigateur.</div>
+    @endif
     @if (session('proposal'))
         <section class="card mt-3">
             <div class="card-body">

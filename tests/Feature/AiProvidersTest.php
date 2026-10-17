@@ -3,16 +3,20 @@
 namespace Tests\Feature;
 
 use App\Exceptions\AiException;
+use App\Services\Ai\AiCareerService;
 use App\Services\Ai\AiProvider;
 use App\Services\Ai\AiRouter;
 use App\Services\Ai\AnthropicProvider;
 use App\Services\Ai\GeminiProvider;
 use App\Services\Ai\GroqProvider;
 use Illuminate\Support\Facades\Http;
+use Tests\CreatesCvoraWorld;
 use Tests\TestCase;
 
 class AiProvidersTest extends TestCase
 {
+    use CreatesCvoraWorld;
+
     protected function setUp(): void
     {
         parent::setUp();
@@ -270,6 +274,87 @@ class AiProvidersTest extends TestCase
             ->expectsOutputToContain('Aucun appel distant')
             ->doesntExpectOutputToContain('super-secret-key')
             ->assertSuccessful();
+
+        Http::assertNothingSent();
+    }
+
+    public function test_an_unknown_driver_is_rejected_without_calling_another_provider(): void
+    {
+        $this->seedCatalog();
+        $user = $this->makeUser();
+        $credits = (int) $user->subscription->credits_remaining;
+
+        config([
+            'cvora.ai.driver' => 'openai',
+            'cvora.ai.fallback' => 'anthropic',
+            'cvora.ai.providers.anthropic.api_key' => 'anthropic-test-key',
+            'cvora.ai.providers.anthropic.model' => 'modele-anthropic',
+            'cvora.ai.providers.anthropic.base_url' => 'https://api.anthropic.test',
+        ]);
+        $this->app->forgetInstance(AiProvider::class);
+        $this->app->forgetInstance(AiRouter::class);
+        $this->app->forgetInstance(AiCareerService::class);
+
+        $proposal = app(AiCareerService::class)->improveSummary($user, 'Texte du candidat.');
+
+        $this->assertFalse($proposal->successful);
+        $this->assertStringContainsString('openai', (string) $proposal->error);
+        $this->assertStringContainsString('anthropic, gemini ou groq', (string) $proposal->error);
+        $this->assertStringNotContainsString('anthropic-test-key', (string) $proposal->error);
+        $this->assertSame($credits, (int) $user->fresh()->subscription->credits_remaining);
+        Http::assertNothingSent();
+
+        $this->artisan('cvora:ai-status')
+            ->expectsOutputToContain('Ce fournisseur n\'est pas pris en charge')
+            ->doesntExpectOutputToContain('anthropic-test-key')
+            ->assertFailed();
+    }
+
+    public function test_an_unknown_fallback_is_not_called_when_the_primary_fails(): void
+    {
+        config([
+            'cvora.ai.driver' => 'anthropic',
+            'cvora.ai.fallback' => 'openai',
+            'cvora.ai.providers.anthropic.api_key' => 'anthropic-test-key',
+            'cvora.ai.providers.anthropic.model' => 'modele-anthropic',
+            'cvora.ai.providers.anthropic.base_url' => 'https://api.anthropic.test',
+            'cvora.ai.providers.gemini.api_key' => 'gemini-test-key',
+            'cvora.ai.providers.gemini.model' => 'modele-gemini',
+            'cvora.ai.providers.gemini.base_url' => 'https://generativelanguage.googleapis.test',
+        ]);
+        $this->app->forgetInstance(AiProvider::class);
+
+        Http::fake([
+            'https://api.anthropic.test/*' => Http::response(['error' => 'secret-body'], 503),
+        ]);
+
+        try {
+            app(AiRouter::class)->complete('systeme', 'donnees');
+            $this->fail('Un fournisseur indisponible doit remonter son erreur si le repli est inconnu.');
+        } catch (AiException $exception) {
+            $this->assertStringNotContainsString('secret-body', $exception->getMessage());
+            $this->assertStringNotContainsString('anthropic-test-key', $exception->getMessage());
+        }
+
+        Http::assertSentCount(1);
+    }
+
+    public function test_a_driver_value_that_looks_like_a_secret_is_not_printed(): void
+    {
+        config([
+            'cvora.ai.driver' => 'sk-ant-secret-value-abcdefghijklmnopqrstuvwxyz',
+            'cvora.ai.providers.anthropic.api_key' => '',
+            'cvora.ai.providers.anthropic.model' => '',
+            'cvora.ai.providers.gemini.api_key' => '',
+            'cvora.ai.providers.gemini.model' => '',
+            'cvora.ai.providers.groq.api_key' => '',
+            'cvora.ai.providers.groq.model' => '',
+        ]);
+
+        $this->artisan('cvora:ai-status')
+            ->expectsOutputToContain('invalide')
+            ->doesntExpectOutputToContain('sk-ant-secret-value')
+            ->assertFailed();
 
         Http::assertNothingSent();
     }

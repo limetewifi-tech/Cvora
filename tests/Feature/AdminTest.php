@@ -100,4 +100,28 @@ class AdminTest extends TestCase
         $this->assertDatabaseHas('settings', ['key' => 'anthropic_model', 'value' => 'modele-anthropic-test']);
         $this->get(route('admin.ai'))->assertDontSee('sk-');
     }
+
+    public function test_admin_rejects_openai_and_accepts_a_groq_model_with_a_slash(): void
+    {
+        $admin = $this->makeUser('pro', ['role' => UserRole::Admin]);
+
+        $this->actingAs($admin)->from(route('admin.settings'))->put(route('admin.settings.update'), [
+            'ai_driver' => 'openai',
+            'groq_model' => 'qwen/qwen3.8-27b',
+        ])->assertSessionHasErrors('ai_driver');
+
+        $this->assertDatabaseMissing('settings', ['key' => 'ai_driver', 'value' => 'openai']);
+
+        $this->put(route('admin.settings.update'), [
+            'ai_driver' => 'groq',
+            'groq_model' => 'qwen/qwen3.8-27b',
+            'gemini_model' => 'gemini-3.8-flash',
+        ])->assertSessionHas('success');
+
+        $this->assertDatabaseHas('settings', ['key' => 'groq_model', 'value' => 'qwen/qwen3.8-27b']);
+
+        $this->from(route('admin.settings'))->put(route('admin.settings.update'), [
+            'gemini_model' => 'openai/gpt-oss-20b',
+        ])->assertSessionHasErrors('gemini_model');
+    }
 }

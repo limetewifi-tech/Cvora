@@ -68,9 +68,11 @@ Les clés restent dans l'environnement et ne sont ni envoyées au navigateur, ni
 - `GEMINI_API_KEY` et `GEMINI_MODEL` pour l'API Gemini (`POST /v1beta/models/{modèle}:generateContent`, en-tête `x-goog-api-key`) ;
 - `GROQ_API_KEY` et `GROQ_MODEL` pour l'API compatible OpenAI de Groq (`POST /chat/completions`).
 
-Un fournisseur est utilisable seulement si sa clé et son identifiant de modèle sont tous les deux renseignés. Aucun modèle de remplacement n'est inventé. `AI_DRIVER` ou l'administration choisit `anthropic`, `gemini` ou `groq`. `AI_FALLBACK_DRIVER` est facultatif : il est ignoré s'il est vide, identique au fournisseur principal, ou non configuré. Le repli n'est pas tenté quand le fournisseur choisi n'a pas de clé. Une réponse JSON déjà reçue n'est pas suivie d'un second appel.
+Un fournisseur est utilisable seulement si sa clé et son identifiant de modèle sont tous les deux renseignés. Aucun modèle de remplacement n'est inventé. `AI_DRIVER` ou l'administration choisit `anthropic`, `gemini` ou `groq`. `openai` n'est pas branché : cette valeur, comme toute valeur inconnue, est refusée et aucun autre fournisseur n'est appelé à sa place. `AI_FALLBACK_DRIVER` est facultatif : il est ignoré s'il est vide, identique au fournisseur principal, inconnu, ou non configuré. Le repli n'est tenté qu'après l'échec d'un fournisseur principal déjà configuré. Une réponse JSON déjà reçue n'est pas suivie d'un second appel. L'identifiant Groq peut contenir une barre (`organisation/modele`). Gemini refuse ce format, car son identifiant est placé dans l'adresse de l'appel.
 
-`AI_DRIVER=fake` ne sert qu'aux tests. Il est refusé si `APP_ENV=production`. `php artisan cvora:ai-status` affiche la présence des clés et les identifiants de modèles, sans appel distant.
+`AI_DRIVER=fake` ne sert qu'aux tests. Il est refusé si `APP_ENV=production`. `php artisan cvora:ai-status` affiche la présence des clés et les identifiants de modèles, sans appel distant. Il signale un pilote non pris en charge sans afficher une valeur qui ressemble à une clé.
+
+Une sonde locale antérieure a reçu HTTP 200 pour `claude-sonnet-4-6`, `gemini-3.8-flash` et `qwen/qwen3.8-27b`. Cette sonde n'est pas rejouée par les tests. Elle ne garantit pas un appel ultérieur.
 
 Chaque appel métier réserve un crédit. Le crédit est rendu si toute la chaîne échoue. Une proposition n'est enregistrée qu'après confirmation de la personne. Les textes importés et les offres d'emploi sont transmis comme des données, pas comme des instructions.
 
@@ -86,7 +88,7 @@ Aucun appel réel vers Anthropic, Gemini ou Groq n'a été effectué dans cette 
 
 `PAYMENT_DRIVER=ikeepay` utilise le paiement direct documenté par iKeePay : en-tête `x-api-key`, `POST /h2h-payin`, puis `GET /h2h-verify/{référence}`. Le formulaire demande le numéro, le code pays et l'opérateur. L'offre n'est activée que si la vérification renvoie un encaissement `completed`, de type `payin`, avec le même montant et la même devise. Une notification sans signature n'est pas considérée comme une preuve : elle déclenche seulement cette vérification. Un statut `pending` laisse la transaction en attente. Un statut `failed` la marque échouée. Un second succès ne réactive pas l'offre.
 
-Sans `IKEEPAY_API_KEY` et `IKEEPAY_API_URL`, le paiement est refusé avant tout appel. Aucun paiement n'est simulé comme réussi. L'acceptation de la devise CDF n'a pas été constatée par un appel réel : ce dépôt n'a pas contacté `api.ikeepay.com`.
+Sans `IKEEPAY_API_KEY` et une URL `https`, le paiement est refusé avant tout appel. Aucun paiement n'est simulé comme réussi. L'acceptation de la devise CDF n'a pas été constatée : ce dépôt n'a pas contacté `api.ikeepay.com`, et aucun paiement réel n'a été lancé. Une valeur de `PAYMENT_DRIVER` autre que `ikeepay` utilise le bac à sable.
 
 Les prix, quotas et fonctionnalités des offres Gratuit, Premium et Pro sont en base et modifiables dans l'administration. Les valeurs du seeder (0, 15 000 et 35 000 CDF) sont un point de départ, pas une règle figée dans le code métier.
 

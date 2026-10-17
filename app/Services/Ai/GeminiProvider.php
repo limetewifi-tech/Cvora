@@ -12,9 +12,14 @@ class GeminiProvider extends RemoteAiProvider
         return 'gemini';
     }
 
+    public function configured(): bool
+    {
+        return parent::configured() && ! str_contains($this->model(), '/');
+    }
+
     public function complete(string $system, string $userPayload): array
     {
-        if (! $this->configured() || str_contains($this->model(), '/')) {
+        if (! $this->configured()) {
             $this->unconfigured();
         }
 
