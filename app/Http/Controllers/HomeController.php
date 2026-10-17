@@ -12,7 +12,7 @@ class HomeController extends Controller
     {
         return view('public.home', [
             'plans' => Plan::query()->active()->orderBy('sort_order')->get(),
-            'templates' => ResumeTemplate::query()->active()->orderBy('sort_order')->get(),
+            'templates' => ResumeTemplate::available(),
             'faqs' => $this->faqs(),
         ]);
     }
@@ -20,7 +20,7 @@ class HomeController extends Controller
     public function templates()
     {
         return view('public.templates', [
-            'templates' => ResumeTemplate::query()->active()->orderBy('sort_order')->get(),
+            'templates' => ResumeTemplate::available(),
         ]);
     }
 

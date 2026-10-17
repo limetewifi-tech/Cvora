@@ -280,6 +280,20 @@ pre {
 
 .cvora-auth { max-width: 32rem; }
 .cvora-narrow { max-width: 40rem; }
+
+.cvora-choice {
+    cursor: pointer;
+    background: var(--bs-body-bg);
+}
+
+.cvora-choice:has(input:checked) {
+    border-color: #2563eb !important;
+    box-shadow: 0 0 0 1px #2563eb;
+}
+
+.cvora-choice:has(input:disabled) {
+    cursor: not-allowed;
+}
 .cvora-prose { max-width: 48rem; }
 .cvora-wide { max-width: 52rem; }
 .cvora-sheet { max-width: 56rem; }

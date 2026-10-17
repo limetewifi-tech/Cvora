@@ -9,6 +9,7 @@ use App\Models\ResumeVersion;
 use App\Models\User;
 use App\Services\Billing\QuotaService;
 use App\Support\ResumeContent;
+use App\Support\ResumeTemplateCatalog;
 use Illuminate\Support\Facades\DB;
 
 class ResumeWriter
@@ -90,6 +91,7 @@ class ResumeWriter
     public function createFromConfirmed(User $user, array $input): Resume
     {
         $this->quota->assertCanCreateResume($user);
+        ResumeTemplateCatalog::installMissing();
         $template = ResumeTemplate::query()->active()->where('is_premium', false)->orderBy('sort_order')->first()
             ?? ResumeTemplate::query()->active()->orderBy('sort_order')->first();
 
