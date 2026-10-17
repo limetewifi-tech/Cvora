@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\EnsureDefaultPlan;
 use App\Http\Middleware\EnsureEmailVerifiedWhenEnabled;
 use App\Http\Middleware\EnsureRole;
 use App\Http\Middleware\EnsureUserIsActive;
@@ -26,6 +27,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'role' => EnsureRole::class,
             'active' => EnsureUserIsActive::class,
             'verified.if' => EnsureEmailVerifiedWhenEnabled::class,
+            'plan' => EnsureDefaultPlan::class,
         ]);
         $middleware->validateCsrfTokens(except: [
             'webhooks/payments/*',

@@ -32,8 +32,8 @@
         <aside class="col-lg-4 vstack gap-3">
             <section class="card">
                 <div class="card-body">
-                    <h2 class="h5">Offre actuelle</h2>
-                    <p class="fw-semibold mb-1">{{ $subscription?->plan?->name ?? 'Aucune offre' }}</p>
+                    <h2 class="h5">Abonnement</h2>
+                    <p class="fw-semibold mb-1">{{ $subscription?->plan?->name ?? 'Aucun abonnement' }}</p>
                     <p class="small text-secondary">{{ $credits }} crédits IA disponibles</p>
                     <a class="btn btn-outline-primary" href="{{ route('billing.index') }}">Voir la facturation</a>
                 </div>

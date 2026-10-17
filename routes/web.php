@@ -56,7 +56,7 @@ Route::post('/webhooks/payments/{provider}', [PaymentWebhookController::class, '
     ->middleware('throttle:webhooks')
     ->name('payments.webhook');
 
-Route::middleware(['auth', 'active', 'verified.if'])->group(function () {
+Route::middleware(['auth', 'active', 'verified.if', 'plan'])->group(function () {
     Route::get('/email/verification', [EmailVerificationController::class, 'notice'])->name('verification.notice');
     Route::post('/email/verification-notification', [EmailVerificationController::class, 'send'])->middleware('throttle:sensitive')->name('verification.send');
     Route::get('/email/verifier/{id}/{hash}', [EmailVerificationController::class, 'verify'])->middleware('signed')->name('verification.verify');

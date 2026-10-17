@@ -2,7 +2,7 @@
 @section('document-title', 'Abonnement')
 @section('content')
     <h1 class="h2">Abonnement et facturation</h1>
-    <p class="text-secondary">Offre actuelle : {{ $subscription?->plan?->name ?? 'Aucune' }} · {{ $subscription?->credits_remaining ?? 0 }} crédits IA.</p>
+    <p class="text-secondary">Abonnement : {{ $subscription?->plan?->name ?? 'Aucun' }} · {{ $subscription?->credits_remaining ?? 0 }} crédits IA.</p>
     @if ($sandbox)
         <div class="alert alert-warning">Mode bac à sable. Aucun paiement réel n'est encaissé. Le prestataire de production est iKeePay. Il reste inactif tant que IKEEPAY_API_KEY et IKEEPAY_API_URL ne sont pas renseignés.</div>
     @endif
