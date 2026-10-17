@@ -95,6 +95,41 @@ class AiProvidersTest extends TestCase
         Http::assertNothingSent();
     }
 
+    public function test_a_groq_model_id_may_contain_one_slash_and_gemini_refuses_it(): void
+    {
+        config([
+            'cvora.ai.providers.groq.api_key' => 'groq-test-key',
+            'cvora.ai.providers.groq.model' => 'openai/gpt-oss-20b',
+            'cvora.ai.providers.groq.base_url' => 'https://api.groq.test/openai/v1',
+            'cvora.ai.providers.gemini.api_key' => 'gemini-test-key',
+            'cvora.ai.providers.gemini.model' => 'openai/gpt-oss-20b',
+            'cvora.ai.providers.gemini.base_url' => 'https://generativelanguage.googleapis.test',
+        ]);
+
+        Http::fake([
+            'https://api.groq.test/*' => Http::response([
+                'choices' => [['message' => ['content' => '{"ok":true}']]],
+            ]),
+        ]);
+
+        $decoded = app(GroqProvider::class)->complete('systeme', 'donnees');
+        $this->assertTrue($decoded['ok']);
+
+        Http::assertSent(function ($request) {
+            return $request->url() === 'https://api.groq.test/openai/v1/chat/completions'
+                && $request['model'] === 'openai/gpt-oss-20b';
+        });
+
+        try {
+            app(GeminiProvider::class)->complete('systeme', 'donnees');
+            $this->fail('Gemini ne doit pas placer un modèle à barre oblique dans l\'adresse.');
+        } catch (AiException $exception) {
+            $this->assertStringNotContainsString('gemini-test-key', $exception->getMessage());
+        }
+
+        Http::assertNotSent(fn ($request) => str_contains($request->url(), 'generativelanguage.googleapis.test'));
+    }
+
     public function test_rate_limit_errors_hide_the_response_body(): void
     {
         config([

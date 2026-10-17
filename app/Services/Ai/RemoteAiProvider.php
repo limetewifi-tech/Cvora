@@ -25,7 +25,7 @@ abstract class RemoteAiProvider implements AiProvider
     {
         $model = trim((string) ($this->settings->get($this->name().'_model') ?: config('cvora.ai.providers.'.$this->name().'.model')));
 
-        if ($model === '' || ! preg_match('/^[A-Za-z0-9._-]{1,80}$/', $model)) {
+        if ($model === '' || ! preg_match('/^[A-Za-z0-9._-]{1,40}(?:\/[A-Za-z0-9._-]{1,39})?$/', $model)) {
             return '';
         }
 
