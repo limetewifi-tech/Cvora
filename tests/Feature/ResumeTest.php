@@ -82,6 +82,30 @@ class ResumeTest extends TestCase
         $this->assertSame(0, $user->resumes()->count());
     }
 
+    public function test_create_page_restores_the_template_catalog_when_it_is_empty(): void
+    {
+        \App\Models\ResumeTemplate::query()->delete();
+        $user = $this->makeUser();
+
+        $this->actingAs($user)->get(route('cvs.create'))
+            ->assertOk()
+            ->assertSee('Choisissez un modèle')
+            ->assertSee('Moderne')
+            ->assertSee('Classique')
+            ->assertSee('Étudiant')
+            ->assertSee('International')
+            ->assertSee('Inclus')
+            ->assertSee('Premium')
+            ->assertDontSee('Le champ template id est obligatoire.');
+
+        $this->assertSame(8, \App\Models\ResumeTemplate::query()->count());
+
+        $this->post(route('cvs.store'), ['title' => 'Sans modèle'])
+            ->assertSessionHasErrors([
+                'template_id' => 'Choisissez un modèle.',
+            ]);
+    }
+
     public function test_dashboard_counts_come_from_the_signed_in_user(): void
     {
         $user = $this->makeUser('premium');

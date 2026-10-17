@@ -26,7 +26,7 @@ class ResumeController extends Controller
 
     public function create(Request $request)
     {
-        $templates = ResumeTemplate::query()->active()->orderBy('sort_order')->get();
+        $templates = ResumeTemplate::available();
 
         return view('resumes.create', [
             'templates' => $templates,
@@ -39,6 +39,10 @@ class ResumeController extends Controller
         $data = $request->validate([
             'title' => ['required', 'string', 'max:160'],
             'template_id' => ['required', 'integer', 'exists:resume_templates,id'],
+        ], [
+            'title.required' => 'Donnez un titre au document.',
+            'template_id.required' => 'Choisissez un modèle.',
+            'template_id.exists' => 'Ce modèle n\'est plus disponible.',
         ]);
 
         $template = ResumeTemplate::query()->findOrFail($data['template_id']);
@@ -59,7 +63,7 @@ class ResumeController extends Controller
 
         return view('resumes.edit', [
             'resume' => $resume,
-            'templates' => ResumeTemplate::query()->active()->orderBy('sort_order')->get(),
+            'templates' => ResumeTemplate::available(),
             'quota' => app(QuotaService::class),
             'form' => $this->formState($resume, $request),
             'versions' => $resume->versions()->latest()->limit(12)->get(),

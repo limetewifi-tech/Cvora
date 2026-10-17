@@ -2,8 +2,10 @@
 
 namespace App\Models;
 
+use App\Support\ResumeTemplateCatalog;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
@@ -28,5 +30,12 @@ class ResumeTemplate extends Model
     public function scopeActive(Builder $query): Builder
     {
         return $query->where('is_active', true);
+    }
+
+    public static function available(): Collection
+    {
+        ResumeTemplateCatalog::installMissing();
+
+        return static::query()->active()->orderBy('sort_order')->get();
     }
 }

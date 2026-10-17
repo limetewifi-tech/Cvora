@@ -20,7 +20,7 @@ class SettingsController extends Controller
         return view('settings.edit', [
             'user' => $user,
             'preferences' => $user->profile?->preferences ?? [],
-            'templates' => ResumeTemplate::query()->active()->orderBy('sort_order')->get(),
+            'templates' => ResumeTemplate::available(),
             'phoneAuthAvailable' => $phone->available(),
         ]);
     }
