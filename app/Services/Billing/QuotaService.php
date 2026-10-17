@@ -60,7 +60,7 @@ class QuotaService
         $limit = $plan->resume_limit;
 
         if ($limit !== null && $user->resumes()->count() >= $limit) {
-            throw new PlanLimitException('Votre offre permet '.$limit.' CV. Passez à une offre supérieure pour en créer un autre.');
+            throw new PlanLimitException('Votre abonnement permet '.$limit.' CV. Un abonnement supérieur permet d\'en créer un autre.');
         }
     }
 
@@ -122,7 +122,7 @@ class QuotaService
             $subscription = Subscription::query()->where('user_id', $user->id)->lockForUpdate()->first();
 
             if (! $subscription || ! $subscription->isActive()) {
-                $denied = 'Aucune offre active n\'est associée à votre compte.';
+                $denied = 'Votre abonnement n\'est pas actif.';
 
                 return;
             }
@@ -174,6 +174,26 @@ class QuotaService
         return (int) $user->subscription()->value('credits_remaining');
     }
 
+    public function ensureDefaultPlan(User $user): bool
+    {
+        $subscription = $user->subscription()->with('plan')->first();
+
+        if ($subscription?->isActive() && $subscription->plan) {
+            return false;
+        }
+
+        $free = Plan::query()->where('slug', 'gratuit')->where('is_active', true)->first();
+
+        if (! $free) {
+            return false;
+        }
+
+        app(PaymentService::class)->assignPlanWithoutPayment($user, $free, false);
+        $user->unsetRelation('subscription');
+
+        return true;
+    }
+
     public function creditsRemaining(User $user): int
     {
         $user->loadMissing('subscription');
@@ -193,7 +213,7 @@ class QuotaService
         $plan = $this->plan($user);
 
         if (! $plan || ! $user->subscription?->isActive()) {
-            throw new PlanLimitException('Aucune offre active n\'est associée à votre compte.');
+            throw new PlanLimitException('Votre abonnement n\'est pas actif.');
         }
 
         return $plan;

@@ -26,11 +26,16 @@ class ResumeController extends Controller
 
     public function create(Request $request)
     {
-        $templates = ResumeTemplate::available();
+        $quota = app(QuotaService::class);
+        $user = $request->user();
+        $user->loadMissing('profile');
 
         return view('resumes.create', [
-            'templates' => $templates,
-            'quota' => app(QuotaService::class),
+            'templates' => ResumeTemplate::available(),
+            'quota' => $quota,
+            'plan' => $quota->plan($user),
+            'resumeCount' => $user->resumes()->count(),
+            'defaultTitle' => $user->profile?->first_name ? 'CV de '.$user->profile->first_name : 'Mon CV',
         ]);
     }
 

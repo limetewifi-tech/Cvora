@@ -2,18 +2,32 @@
 @section('document-title', 'Créer un CV')
 @section('content')
     <h1 class="h2">Créer un CV</h1>
-    <p class="text-secondary">Le profil complète les champs connus. Vous pourrez tout corriger ensuite.</p>
+    <p class="text-secondary">Indiquez un titre, gardez le modèle Moderne ou choisissez-en un autre, puis ouvrez l'éditeur. Le profil est recopié lorsqu'il contient déjà des informations.</p>
+    @if ($plan)
+        <p class="small text-secondary mb-0">
+            Abonnement {{ $plan->name }}
+            @if ($plan->resume_limit)
+                · {{ $resumeCount }} / {{ $plan->resume_limit }} CV
+            @endif
+        </p>
+    @endif
+    @if ($plan && $plan->resume_limit !== null && $resumeCount >= $plan->resume_limit)
+        <div class="alert alert-warning mt-3" role="status">
+            Votre abonnement {{ $plan->name }} permet {{ $plan->resume_limit }} CV.
+            <a class="alert-link" href="{{ route('billing.index') }}">Voir les abonnements</a>
+        </div>
+    @endif
     <form method="POST" action="{{ route('cvs.store') }}" class="card cvora-narrow mt-4 needs-validation" novalidate>
         @csrf
         <div class="card-body vstack gap-3">
             <div>
                 <label class="form-label" for="title">Titre du document</label>
-                <input class="form-control" id="title" name="title" value="{{ old('title', 'Mon CV') }}" required>
+                <input class="form-control" id="title" name="title" value="{{ old('title', $defaultTitle) }}" required>
                 <div class="invalid-feedback">Donnez un titre au document.</div>
             </div>
             <fieldset>
                 <legend class="form-label mb-1">Choisissez un modèle</legend>
-                <p class="small text-secondary">La mise en page du CV. Vous pourrez en changer dans l'éditeur.</p>
+                <p class="small text-secondary">Moderne est déjà sélectionné. Vous pourrez changer de mise en page dans l'éditeur. Les modèles Premium demandent l'abonnement correspondant.</p>
                 @php
                     $defaultTemplate = $templates->first(fn ($template) => ! $template->is_premium || $quota->allows(auth()->user(), 'premium_templates'));
                 @endphp
@@ -30,7 +44,7 @@
                                     <span class="badge text-bg-{{ $template->is_premium ? 'warning' : 'primary' }} ms-1">{{ $template->is_premium ? 'Premium' : 'Inclus' }}</span>
                                     <span class="d-block small text-secondary">{{ $template->description }}</span>
                                     @unless ($allowed)
-                                        <span class="d-block small">Disponible avec une offre qui inclut les modèles premium.</span>
+                                        <span class="d-block small">Disponible avec l'abonnement Premium ou Pro.</span>
                                     @endunless
                                 </span>
                             </label>

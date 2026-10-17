@@ -14,7 +14,7 @@ class GeminiProvider extends RemoteAiProvider
 
     public function complete(string $system, string $userPayload): array
     {
-        if (! $this->configured()) {
+        if (! $this->configured() || str_contains($this->model(), '/')) {
             $this->unconfigured();
         }
 

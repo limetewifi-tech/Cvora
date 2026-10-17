@@ -21,13 +21,13 @@ class PaymentService
         private IkeepayClient $ikeepay,
     ) {}
 
-    public function assignPlanWithoutPayment(User $user, Plan $plan): Subscription
+    public function assignPlanWithoutPayment(User $user, Plan $plan, bool $notify = true): Subscription
     {
         if (! $plan->is_active || ! $plan->isFree()) {
             throw new PaymentException('Seule une offre gratuite peut être activée sans paiement.');
         }
 
-        return $this->activateSubscription($user, $plan, null);
+        return $this->activateSubscription($user, $plan, null, $notify);
     }
 
     public function startCheckout(User $user, Plan $plan, array $details = []): array
@@ -288,7 +288,7 @@ class PaymentService
             $plan = $locked->plan;
 
             if ($plan && $locked->user) {
-                $subscription = $this->activateSubscription($locked->user, $plan, $locked);
+                $subscription = $this->activateSubscription($locked->user, $plan, $locked, true);
                 $locked->forceFill(['subscription_id' => $subscription->id])->save();
             }
 
@@ -296,7 +296,7 @@ class PaymentService
         });
     }
 
-    private function activateSubscription(User $user, Plan $plan, ?Transaction $transaction): Subscription
+    private function activateSubscription(User $user, Plan $plan, ?Transaction $transaction, bool $notify = true): Subscription
     {
         $subscription = Subscription::query()->firstOrNew(['user_id' => $user->id]);
         $subscription->fill([
@@ -310,7 +310,9 @@ class PaymentService
             'provider_reference' => $transaction?->provider_reference,
         ])->save();
 
-        $user->notify(new SubscriptionActivated($plan->name));
+        if ($notify) {
+            $user->notify(new SubscriptionActivated($plan->name));
+        }
 
         return $subscription;
     }

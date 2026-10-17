@@ -24,7 +24,7 @@ class AiStatus
             $key = trim((string) config('cvora.ai.providers.'.$name.'.api_key'));
             $model = trim((string) ($this->settings->get($name.'_model') ?: config('cvora.ai.providers.'.$name.'.model')));
 
-            if ($model === '' || ! preg_match('/^[A-Za-z0-9._-]{1,80}$/', $model) || ($key !== '' && str_contains($model, $key))) {
+            if ($model === '' || ! preg_match('/^[A-Za-z0-9._-]{1,40}(?:\/[A-Za-z0-9._-]{1,39})?$/', $model) || ($key !== '' && str_contains($model, $key))) {
                 $model = '';
             }
 

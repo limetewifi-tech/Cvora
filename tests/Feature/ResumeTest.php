@@ -106,6 +106,44 @@ class ResumeTest extends TestCase
             ]);
     }
 
+    public function test_an_account_without_a_plan_receives_the_free_plan_and_can_create_a_resume(): void
+    {
+        $user = $this->makeUser();
+        $user->subscription()->delete();
+        $template = \App\Models\ResumeTemplate::query()->where('slug', 'moderne')->firstOrFail();
+
+        $this->actingAs($user)->get(route('cvs.create'))
+            ->assertOk()
+            ->assertSee('L\'abonnement Gratuit est activé')
+            ->assertSee('Moderne')
+            ->assertSee('Abonnement Gratuit')
+            ->assertDontSee('Aucune offre active');
+
+        $this->assertSame('gratuit', $user->fresh()->subscription->plan->slug);
+
+        $this->post(route('cvs.store'), [
+            'title' => 'CV de Amina',
+            'template_id' => $template->id,
+        ])->assertRedirect();
+
+        $this->assertSame(1, $user->resumes()->count());
+        $this->assertSame(5, (int) $user->fresh()->subscription->credits_remaining);
+    }
+
+    public function test_an_active_premium_plan_is_not_replaced(): void
+    {
+        $user = $this->makeUser('premium');
+        $credits = (int) $user->subscription->credits_remaining;
+
+        $this->actingAs($user)->get(route('dashboard'))
+            ->assertOk()
+            ->assertDontSee('L\'abonnement Gratuit est activé');
+
+        $fresh = $user->fresh();
+        $this->assertSame('premium', $fresh->subscription->plan->slug);
+        $this->assertSame($credits, (int) $fresh->subscription->credits_remaining);
+    }
+
     public function test_dashboard_counts_come_from_the_signed_in_user(): void
     {
         $user = $this->makeUser('premium');
