@@ -61,6 +61,7 @@
             <a class="btn btn-outline-primary" href="{{ route('imports.create') }}">Importer</a>
             <a class="btn btn-outline-primary" href="{{ route('letters.create') }}">Nouvelle lettre</a>
             <a class="btn btn-outline-primary" href="{{ route('assistant.index') }}">Assistant IA</a>
+            <a class="btn btn-outline-primary" href="{{ route('studio.index') }}">Studio CV</a>
         </div>
     </section>
     @if ($notifications->isNotEmpty())

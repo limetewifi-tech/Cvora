@@ -17,11 +17,15 @@
         <div class="card-body">
             <input type="hidden" name="job_offer_id" value="{{ $offer->id }}">
             <label class="form-label" for="resume_id">Comparer avec un CV</label>
-            <select class="form-select" id="resume_id" name="resume_id">
+            <select class="form-select" id="resume_id" name="resume_id" required>
                 @foreach ($resumes as $resume)
                     <option value="{{ $resume->id }}">{{ $resume->title }}</option>
                 @endforeach
             </select>
+            <div class="form-check mt-3">
+                <input class="form-check-input" type="checkbox" name="authorize_resume" id="authorize_resume" value="1" required>
+                <label class="form-check-label" for="authorize_resume">J'autorise l'utilisation de ce CV.</label>
+            </div>
             <button class="btn btn-primary mt-3" type="submit">Analyser l'offre</button>
         </div>
     </form>

@@ -57,6 +57,7 @@ class AiQuotaTest extends TestCase
         $this->actingAs($user)->postJson(route('assistant.analyze'), [
             'job_offer_id' => $offer->id,
             'resume_id' => $resume->id,
+            'authorize_resume' => '1',
         ])->assertStatus(422);
 
         $this->assertNull($offer->fresh()->analysis);

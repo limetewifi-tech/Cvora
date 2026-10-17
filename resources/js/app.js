@@ -62,6 +62,10 @@ document.querySelectorAll('form').forEach((form) => {
     });
 });
 
+document.querySelectorAll('[data-print]').forEach((button) => {
+    button.addEventListener('click', () => window.print());
+});
+
 document.querySelectorAll('[data-ai-form]').forEach((form) => {
     form.addEventListener('submit', (event) => {
         if (!form.checkValidity()) {

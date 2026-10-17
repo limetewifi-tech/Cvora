@@ -23,6 +23,7 @@
                             ['imports.create', 'Importer un CV', 'imports.*', 'bi-upload'],
                             ['letters.index', 'Lettres de motivation', 'letters.*', 'bi-envelope-paper'],
                             ['assistant.index', 'Assistant IA', 'assistant.*', 'bi-stars'],
+                            ['studio.index', 'Studio CV', 'studio.*', 'bi-bullseye'],
                             ['applications.index', 'Mes candidatures', 'applications.*', 'bi-briefcase'],
                             ['jobs.index', 'Offres d\'emploi', 'jobs.*', 'bi-megaphone'],
                             ['templates.index', 'Modèles', 'templates.*', 'bi-layout-text-window'],

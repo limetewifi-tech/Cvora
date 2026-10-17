@@ -76,6 +76,10 @@ Chaque appel métier réserve un crédit. Le crédit est rendu si toute la chaî
 
 Aucun appel réel vers Anthropic, Gemini ou Groq n'a été effectué dans cette version. La commande de statut et les tests simulés ne prouvent pas qu'une clé ou qu'un modèle est accepté par le fournisseur.
 
+## Studio CV
+
+`/studio` compare un CV enregistré au texte d'une offre. Le score est local : pourcentage d'exigences déjà écrites dans le résumé, les compétences ou les expériences. Une compétence du CV citée dans l'offre compte aussi. Aucune compétence absente n'est ajoutée. Les suggestions d'un fournisseur ne sont demandées que si la personne l'autorise et si son offre inclut l'adaptation. Un échec du fournisseur laisse le score local et n'invente pas de proposition. Le CV ne change qu'après une case de confirmation.
+
 ## Paiements
 
 `PAYMENT_DRIVER=sandbox` affiche un écran de bac à sable. Confirmer ou refuser cet écran ne représente pas un encaissement réel. Cette confirmation exige encore l'en-tête `X-Cvora-Signature` (HMAC SHA-256 du corps brut, clé `PAYMENT_WEBHOOK_SECRET`) lorsqu'elle arrive par webhook.

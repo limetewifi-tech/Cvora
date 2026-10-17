@@ -41,6 +41,7 @@ class ScreenTest extends TestCase
             route('letters.create'),
             route('letters.edit', $letter),
             route('assistant.index'),
+            route('studio.index'),
             route('jobs.index'),
             route('applications.index'),
             route('billing.index'),

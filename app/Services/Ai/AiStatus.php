@@ -28,10 +28,17 @@ class AiStatus
                 $model = '';
             }
 
+            $keyPresent = $key !== '';
+            $modelPresent = $model !== '';
             $providers[$name] = [
-                'key_present' => $key !== '',
+                'key_present' => $keyPresent,
                 'model' => $model,
-                'configured' => $key !== '' && $model !== '',
+                'configured' => $keyPresent && $modelPresent,
+                'state' => match (true) {
+                    $keyPresent && $modelPresent => 'configured',
+                    $keyPresent || $modelPresent => 'incomplete',
+                    default => 'absent',
+                },
             ];
         }
 
