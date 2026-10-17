@@ -9,9 +9,14 @@
         @endforeach
     </ul>
     @if (! $driverSupported)
-        <div class="alert alert-warning mt-3" role="status">Le fournisseur « {{ $driver }} » n'est pas pris en charge. Utilisez anthropic, gemini ou groq. Aucun autre fournisseur n'est appelé.</div>
+        <div class="alert alert-warning mt-3" role="status">
+            Le fournisseur « {{ $driver }} » n'est pas pris en charge. Dans le fichier <code>.env</code> du serveur qui exécute l'application, indiquez <code>AI_DRIVER=anthropic</code>, <code>gemini</code> ou <code>groq</code>, puis la clé et le modèle de ce fournisseur. Si l'administration a enregistré un ancien choix, ouvrez Configuration et enregistrez un fournisseur accepté. Exécutez ensuite <code>php artisan config:clear</code> et redémarrez l'application. Aucun autre fournisseur n'est appelé, et aucune clé n'est affichée ici.
+        </div>
     @elseif (! $configured)
-        <div class="alert alert-warning mt-3" role="status">Le fournisseur sélectionné est incomplet ou non configuré. Une clé seule ne suffit pas : l'identifiant de modèle doit aussi être renseigné sur le serveur. Aucune clé n'est envoyée au navigateur.</div>
+        <div class="alert alert-warning mt-3" role="status">Le fournisseur sélectionné est incomplet ou non configuré. Une clé seule ne suffit pas : l'identifiant de modèle doit aussi être renseigné dans le fichier <code>.env</code> du serveur. Exécutez <code>php artisan config:clear</code> puis redémarrez l'application. Aucune clé n'est envoyée au navigateur.</div>
+    @endif
+    @if ($credits < 1)
+        <p class="small text-secondary mt-3 mb-0">Cet abonnement n'a plus de crédit IA. Un appel sera refusé tant qu'un crédit n'est pas disponible.</p>
     @endif
     @if (session('proposal'))
         <section class="card mt-3">

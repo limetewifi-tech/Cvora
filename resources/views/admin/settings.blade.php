@@ -4,7 +4,7 @@
     <h1 class="h2">Configuration</h1>
     <p class="small text-secondary">Paiement : {{ $paymentDriver }}. iKeePay : {{ $ikeepayConfigured ? 'identifiants présents' : 'non configuré' }}. IA : {{ $aiStatus['driver'] !== '' ? $aiStatus['driver'] : 'absent' }}, repli {{ $aiStatus['fallback'] !== '' ? $aiStatus['fallback'] : 'aucun' }}.</p>
     @unless ($aiStatus['driver_supported'])
-        <div class="alert alert-warning mt-3" role="status">Le fournisseur « {{ $aiStatus['driver'] }} » n'est pas pris en charge. Choisissez anthropic, gemini ou groq. Aucun autre fournisseur n'est appelé.</div>
+        <div class="alert alert-warning mt-3" role="status">Le fournisseur « {{ $aiStatus['driver'] }} » n'est pas pris en charge. Choisissez anthropic, gemini ou groq ci-dessous et enregistrez. Ce réglage remplace <code>AI_DRIVER</code> tant qu'il reste enregistré. Aucun autre fournisseur n'est appelé.</div>
     @endunless
     <form method="POST" action="{{ route('admin.settings.update') }}" class="card mt-3">
         @csrf @method('PUT')
