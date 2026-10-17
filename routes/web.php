@@ -23,6 +23,7 @@ use App\Http\Controllers\ResumeExportController;
 use App\Http\Controllers\ResumeImportController;
 use App\Http\Controllers\ResumeVersionController;
 use App\Http\Controllers\SettingsController;
+use App\Http\Controllers\StudioController;
 use App\Http\Controllers\TemplateExampleController;
 use Illuminate\Support\Facades\Route;
 
@@ -117,6 +118,11 @@ Route::middleware(['auth', 'active', 'verified.if'])->group(function () {
         Route::post('/lettres/{letter}/versions/{version}/restaurer', [CoverLetterController::class, 'restore'])->name('letters.versions.restore');
         Route::get('/lettres/{letter}/export/{format}', [CoverLetterController::class, 'export'])->whereIn('format', ['pdf', 'docx'])->name('letters.export');
         Route::post('/lettres/{letter}/proposition', [CoverLetterController::class, 'apply'])->name('letters.apply');
+
+        Route::get('/studio', [StudioController::class, 'index'])->name('studio.index');
+        Route::post('/studio', [StudioController::class, 'store'])->middleware('throttle:ai')->name('studio.store');
+        Route::get('/studio/{analysis}', [StudioController::class, 'show'])->name('studio.show');
+        Route::post('/studio/{analysis}/appliquer', [StudioController::class, 'apply'])->name('studio.apply');
 
         Route::get('/offres', [JobOfferController::class, 'index'])->name('jobs.index');
         Route::post('/offres', [JobOfferController::class, 'store'])->name('jobs.store');

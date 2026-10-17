@@ -7,17 +7,19 @@ use App\Models\JobOffer;
 use App\Models\Resume;
 use App\Services\Ai\AiCareerService;
 use App\Services\Ai\AiProposal;
+use App\Services\Ai\AiStatus;
 use App\Services\Billing\QuotaService;
 use Illuminate\Http\Request;
 
 class AssistantController extends Controller
 {
-    public function index(Request $request, QuotaService $quota)
+    public function index(Request $request, QuotaService $quota, AiStatus $status)
     {
         return view('assistant.index', [
             'credits' => $quota->creditsRemaining($request->user()),
             'resumes' => $request->user()->resumes()->orderBy('title')->get(),
             'configured' => app(AiCareerService::class)->configured(),
+            'providers' => $status->snapshot()['providers'],
         ]);
     }
 
@@ -33,9 +35,7 @@ class AssistantController extends Controller
 
     public function experiences(Request $request, AiCareerService $ai)
     {
-        $data = $request->validate([
-            'resume_id' => ['required', 'integer'],
-        ]);
+        $data = $this->authorizedResume($request);
         $resume = $this->resume($request, (int) $data['resume_id']);
 
         return $this->respond($request, $ai->improveExperiences($request->user(), $resume->content['experiences'] ?? []));
@@ -43,7 +43,7 @@ class AssistantController extends Controller
 
     public function skills(Request $request, AiCareerService $ai)
     {
-        $data = $request->validate(['resume_id' => ['required', 'integer']]);
+        $data = $this->authorizedResume($request);
         $resume = $this->resume($request, (int) $data['resume_id']);
 
         return $this->respond($request, $ai->reformulateSkills($request->user(), $resume->content['skills'] ?? []));
@@ -81,6 +81,11 @@ class AssistantController extends Controller
         $skills = [];
 
         if (! empty($data['resume_id'])) {
+            $request->validate([
+                'authorize_resume' => ['accepted'],
+            ], [
+                'authorize_resume.accepted' => 'Autorisez l\'utilisation du CV pour rédiger la lettre.',
+            ]);
             $resume = $this->resume($request, (int) $data['resume_id']);
             $summary = trim((string) $resume->summary."\n".collect($resume->content['experiences'] ?? [])->pluck('description')->implode("\n"));
             $skills = $resume->content['skills'] ?? [];
@@ -102,6 +107,9 @@ class AssistantController extends Controller
         $data = $request->validate([
             'job_offer_id' => ['required', 'integer'],
             'resume_id' => ['required', 'integer'],
+            'authorize_resume' => ['accepted'],
+        ], [
+            'authorize_resume.accepted' => 'Autorisez l\'utilisation du CV pour analyser l\'offre.',
         ]);
         $offer = JobOffer::query()->where('user_id', $request->user()->id)->findOrFail($data['job_offer_id']);
         $resume = $this->resume($request, (int) $data['resume_id']);
@@ -130,7 +138,7 @@ class AssistantController extends Controller
 
     public function refresh(Request $request, AiCareerService $ai)
     {
-        $data = $request->validate(['resume_id' => ['required', 'integer']]);
+        $data = $this->authorizedResume($request);
         $resume = $this->resume($request, (int) $data['resume_id']);
 
         return $this->respond($request, $ai->refreshResume($request->user(), [
@@ -138,6 +146,16 @@ class AssistantController extends Controller
             'experiences' => $resume->content['experiences'] ?? [],
             'section_order' => $resume->section_order ?? [],
         ]));
+    }
+
+    private function authorizedResume(Request $request): array
+    {
+        return $request->validate([
+            'resume_id' => ['required', 'integer'],
+            'authorize_resume' => ['accepted'],
+        ], [
+            'authorize_resume.accepted' => 'Autorisez l\'utilisation du CV avant cette action.',
+        ]);
     }
 
     private function resume(Request $request, int $id): Resume

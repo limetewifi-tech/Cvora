@@ -24,6 +24,7 @@ class CoverLetterTest extends TestCase
             'position' => 'Analyste',
             'company' => 'Banque exemple',
             'resume_id' => $resume->id,
+            'authorize_resume' => '1',
             'tone' => 'professionnel',
             'length' => 'standard',
         ]);
