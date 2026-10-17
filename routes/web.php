@@ -18,6 +18,7 @@ use App\Http\Controllers\LegalController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\PaymentWebhookController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\ResumeCoachController;
 use App\Http\Controllers\ResumeController;
 use App\Http\Controllers\ResumeExportController;
 use App\Http\Controllers\ResumeImportController;
@@ -102,6 +103,7 @@ Route::middleware(['auth', 'active', 'verified.if', 'plan'])->group(function () 
         Route::delete('/cvs/{resume}', [ResumeController::class, 'destroy'])->name('cvs.destroy');
         Route::post('/cvs/{resume}/dupliquer', [ResumeController::class, 'duplicate'])->name('cvs.duplicate');
         Route::get('/cvs/{resume}/apercu', [ResumeController::class, 'preview'])->name('cvs.preview');
+        Route::post('/cvs/{resume}/conversation', [ResumeCoachController::class, 'store'])->middleware('throttle:ai')->name('cvs.coach');
         Route::get('/cvs/{resume}/export/{format}', [ResumeExportController::class, 'download'])->whereIn('format', ['pdf', 'docx'])->name('cvs.export');
         Route::get('/cvs/{resume}/versions', [ResumeVersionController::class, 'index'])->name('cvs.versions');
         Route::post('/cvs/{resume}/versions', [ResumeVersionController::class, 'store'])->name('cvs.versions.store');

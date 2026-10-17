@@ -10,6 +10,7 @@ use App\Services\Billing\QuotaService;
 use App\Services\Documents\ResumePresenter;
 use App\Services\Resume\ResumeWriter;
 use App\Support\ResumeContent;
+use App\Support\ResumeReadiness;
 use Illuminate\Http\Request;
 
 class ResumeController extends Controller
@@ -66,11 +67,15 @@ class ResumeController extends Controller
         $this->authorize('update', $resume);
         $resume->load('template');
 
+        $form = $this->formState($resume, $request);
+
         return view('resumes.edit', [
             'resume' => $resume,
             'templates' => ResumeTemplate::available(),
             'quota' => app(QuotaService::class),
-            'form' => $this->formState($resume, $request),
+            'form' => $form,
+            'checks' => ResumeReadiness::checks($form),
+            'credits' => app(QuotaService::class)->creditsRemaining($request->user()),
             'versions' => $resume->versions()->latest()->limit(12)->get(),
         ]);
     }
@@ -126,13 +131,15 @@ class ResumeController extends Controller
         return redirect()->route('cvs.edit', $copy)->with('success', 'Une copie du CV a été créée.');
     }
 
-    public function preview(Resume $resume, ResumePresenter $presenter)
+    public function preview(Request $request, Resume $resume, ResumePresenter $presenter)
     {
         $this->authorize('view', $resume);
 
         return view('resumes.paper', [
             'document' => $presenter->present($resume),
             'title' => $resume->title,
+            'screen' => true,
+            'embedded' => $request->boolean('cadre'),
         ]);
     }
 

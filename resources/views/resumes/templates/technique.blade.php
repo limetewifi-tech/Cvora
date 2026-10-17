@@ -1,5 +1,5 @@
 <div class="mast">
-    <h1 style="font-size:18pt;">{{ $document['name'] }}</h1>
+    <h1>{{ $document['name'] }}</h1>
     <p>{{ $document['headline'] }}</p>
     <p style="margin-top:6px;font-size:9pt;">{{ implode(' | ', $document['contact']) }}</p>
 </div>

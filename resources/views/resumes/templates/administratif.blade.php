@@ -1,5 +1,5 @@
 <div style="border-left:6px solid #1F2937;padding-left:12px;">
-    <h1 style="font-size:18pt;">{{ $document['name'] }}</h1>
+    <h1>{{ $document['name'] }}</h1>
     <p>{{ $document['headline'] }}</p>
 </div>
 <table>

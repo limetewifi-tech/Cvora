@@ -81,6 +81,13 @@ class AiCareerService
         ]);
     }
 
+    public function coach(User $user, array $context): AiProposal
+    {
+        return $this->run($user, 'coach', $context + [
+            'instruction' => 'Réponds en français, brièvement. reply explique quoi compléter. suggestions reformule uniquement des faits fournis. target vaut summary, headline, experience, education ou skill. index est le numéro de ligne, ou null. N\'invente aucun fait et ne dis pas que le CV a été modifié.',
+        ]);
+    }
+
     public function refreshResume(User $user, array $context): AiProposal
     {
         return $this->guarded($user, 'refresh', function () use ($user) {

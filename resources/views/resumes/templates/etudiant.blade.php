@@ -1,5 +1,5 @@
 <div class="band">
-    <h1 style="font-size:20pt;">{{ $document['name'] }}</h1>
+    <h1>{{ $document['name'] }}</h1>
     <p>{{ $document['headline'] }}</p>
     <p style="font-size:10pt;margin-top:6px;">{{ implode(' · ', $document['contact']) }}</p>
 </div>

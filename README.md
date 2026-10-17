@@ -76,6 +76,8 @@ Une sonde locale antérieure a reçu HTTP 200 pour `claude-sonnet-4-6`, `gemini-
 
 Chaque appel métier réserve un crédit. Le crédit est rendu si toute la chaîne échoue. Une proposition n'est enregistrée qu'après confirmation de la personne. Les textes importés et les offres d'emploi sont transmis comme des données, pas comme des instructions.
 
+Dans l'éditeur, « Améliorer ce texte » reformule un passage déjà saisi. La conversation envoie le message et le contenu professionnel du CV. Une réponse peut proposer un texte pour un champ existant. Ce texte n'est écrit dans le formulaire que lorsque la personne choisit « Utiliser cette proposition ». L'aperçu et les exports PDF et Word utilisent une page A4 (210 × 297 mm) avec des marges de 14 mm en haut et en bas et de 12 mm sur les côtés.
+
 Aucun appel réel vers Anthropic, Gemini ou Groq n'a été effectué dans cette version. La commande de statut et les tests simulés ne prouvent pas qu'une clé ou qu'un modèle est accepté par le fournisseur.
 
 ## Studio CV

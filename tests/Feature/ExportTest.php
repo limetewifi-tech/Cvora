@@ -55,7 +55,12 @@ class ExportTest extends TestCase
         $phpWord = IOFactory::load($file);
         $extracted = '';
 
-        foreach ($phpWord->getSections() as $section) {
+        $sections = $phpWord->getSections();
+        $this->assertSame('A4', $sections[0]->getStyle()->getPaperSize());
+        $this->assertEquals(794, $sections[0]->getStyle()->getMarginTop());
+        $this->assertEquals(680, $sections[0]->getStyle()->getMarginLeft());
+
+        foreach ($sections as $section) {
             foreach ($section->getElements() as $element) {
                 if (method_exists($element, 'getText') && is_string($element->getText())) {
                     $extracted .= ' '.$element->getText();

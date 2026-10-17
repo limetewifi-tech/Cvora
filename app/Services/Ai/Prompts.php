@@ -35,6 +35,7 @@ PROMPT;
             'skills' => '{"items":[{"index":0,"name":""}],"missing_information":[],"warnings":[]}',
             'cover_letter' => '{"body":"","missing_information":[],"warnings":[]}',
             'job_analysis', 'refresh' => '{"required_skills":[],"matched_skills":[],"missing_skills":[],"suggestions":[],"summary_proposal":"","experiences":[{"index":0,"description":""}],"section_order":[],"missing_information":[],"warnings":[]}',
+            'coach' => '{"reply":"","suggestions":[{"target":"summary","index":null,"text":"","label":""}],"missing_information":[],"warnings":[]}',
             default => '{"proposal":"","missing_information":[],"warnings":[]}',
         };
     }

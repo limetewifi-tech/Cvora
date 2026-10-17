@@ -21,6 +21,7 @@
             <p class="small text-secondary mb-0" data-save-status>Les modifications de texte sont enregistrées automatiquement.</p>
         </div>
         <div class="d-flex flex-wrap gap-2">
+            <a class="btn btn-outline-primary" href="{{ route('cvs.preview', $resume) }}" target="_blank" rel="noopener">Format A4</a>
             <a class="btn btn-outline-primary" href="{{ route('cvs.versions', $resume) }}">Versions</a>
             <a class="btn btn-outline-danger" href="{{ route('cvs.delete', $resume) }}">Supprimer</a>
         </div>
@@ -61,16 +62,21 @@
                             @foreach (['first_name' => 'Prénom', 'last_name' => 'Nom', 'headline' => 'Titre visé', 'email' => 'E-mail', 'phone' => 'Téléphone', 'city' => 'Ville', 'country' => 'Pays', 'address' => 'Adresse', 'linkedin' => 'LinkedIn', 'website' => 'Site'] as $key => $label)
                                 <div class="{{ $key === 'address' ? 'col-12' : 'col-sm-6' }}">
                                     <label class="form-label" for="personal_{{ $key }}">{{ $label }}</label>
-                                    <input class="form-control" id="personal_{{ $key }}" name="personal[{{ $key }}]" value="{{ $form['personal'][$key] ?? '' }}">
+                                    <input class="form-control" id="personal_{{ $key }}" name="personal[{{ $key }}]" value="{{ $form['personal'][$key] ?? '' }}" @if ($key === 'headline') data-coach-field="headline" @endif>
                                 </div>
                             @endforeach
                         </div>
                     </div>
                 </section>
                 <section id="resume" class="card">
-                    <div class="card-body">
-                        <h2 class="h5">2. Résumé professionnel</h2>
-                        <textarea class="form-control cvora-textarea mt-3" name="summary">{{ $form['summary'] }}</textarea>
+                    <div class="card-body vstack gap-3">
+                        <div class="d-flex flex-wrap align-items-center justify-content-between gap-2">
+                            <h2 class="h5 mb-0">2. Résumé professionnel</h2>
+                            <button class="btn btn-sm btn-outline-primary" type="button" data-suggest data-suggest-url="{{ route('assistant.summary') }}" data-suggest-field="summary">Améliorer ce texte</button>
+                        </div>
+                        <textarea class="form-control cvora-textarea" name="summary" data-coach-field="summary">{{ $form['summary'] }}</textarea>
+                        <p class="small text-secondary mb-0">Trame à remplir avec vos faits : « [Métier] depuis [année], dans [domaine]. » L'amélioration reformule ce qui est déjà écrit.</p>
+                        <div data-suggest-output hidden></div>
                     </div>
                 </section>
                 @php $stepNo = 3; @endphp
@@ -107,11 +113,19 @@
                                                         <label class="form-check-label" for="{{ $section }}_{{ $index }}_{{ $field['name'] }}">{{ $field['label'] }}</label>
                                                     </div>
                                                 @elseif ($field['type'] === 'textarea')
-                                                    <label class="form-label">{{ $field['label'] }}</label>
-                                                    <textarea class="form-control cvora-textarea" name="{{ $section }}[{{ $index }}][{{ $field['name'] }}]">{{ $item[$field['name']] ?? '' }}</textarea>
+                                                    <div class="d-flex flex-wrap align-items-center justify-content-between gap-2">
+                                                        <label class="form-label mb-0">{{ $field['label'] }}</label>
+                                                        @if (in_array($section, ['experiences', 'education'], true) && $field['name'] === 'description')
+                                                            <button class="btn btn-sm btn-outline-primary" type="button" data-suggest data-suggest-url="{{ route('assistant.grammar') }}" data-suggest-field="{{ $section }}[{{ $index }}][{{ $field['name'] }}]">Améliorer ce texte</button>
+                                                        @endif
+                                                    </div>
+                                                    <textarea class="form-control cvora-textarea" name="{{ $section }}[{{ $index }}][{{ $field['name'] }}]" @if ($field['name'] === 'description' && $section === 'experiences') data-coach-field="experience" data-coach-index="{{ $index }}" @elseif ($field['name'] === 'description' && $section === 'education') data-coach-field="education" data-coach-index="{{ $index }}" @endif>{{ $item[$field['name']] ?? '' }}</textarea>
+                                                    @if (in_array($section, ['experiences', 'education'], true) && $field['name'] === 'description')
+                                                        <div data-suggest-output hidden></div>
+                                                    @endif
                                                 @else
                                                     <label class="form-label">{{ $field['label'] }}</label>
-                                                    <input class="form-control" name="{{ $section }}[{{ $index }}][{{ $field['name'] }}]" value="{{ $item[$field['name']] ?? '' }}">
+                                                    <input class="form-control" name="{{ $section }}[{{ $index }}][{{ $field['name'] }}]" value="{{ $item[$field['name']] ?? '' }}" @if ($section === 'skills' && $field['name'] === 'name') data-coach-field="skill" data-coach-index="{{ $index }}" @endif>
                                                 @endif
                                             </div>
                                         @endforeach
@@ -159,10 +173,46 @@
         </div>
         <aside class="col-xl-4">
             <div class="cvora-preview-sticky vstack gap-3">
-                <div class="card overflow-hidden">
-                    <p class="border-bottom mb-0 px-3 py-2 small fw-semibold">Aperçu</p>
-                    <iframe data-preview title="Aperçu du CV" src="{{ route('cvs.preview', $resume) }}" class="w-100 bg-white"></iframe>
+                @php $ready = collect($checks)->where('done', true)->count(); @endphp
+                <div class="card">
+                    <div class="card-body">
+                        <p class="fw-semibold mb-2" data-readiness-label>{{ $ready }} élément{{ $ready > 1 ? 's' : '' }} prêt{{ $ready > 1 ? 's' : '' }} sur {{ count($checks) }}</p>
+                        <ul class="list-unstyled mb-0 vstack gap-1">
+                            @foreach ($checks as $check)
+                                <li data-readiness-item data-done="{{ $check['done'] ? '1' : '0' }}" data-readiness-mode="{{ $check['mode'] }}" data-readiness-prefix="{{ $check['prefix'] }}" data-readiness-fields='@json($check['fields'])'>
+                                    <button class="btn btn-link btn-sm text-start p-0 text-decoration-none" type="button" data-jump="{{ $check['jump'] }}">
+                                        <i class="bi {{ $check['done'] ? 'bi-check-circle-fill text-success' : 'bi-circle text-secondary' }} me-1" data-readiness-icon aria-hidden="true"></i>{{ $check['label'] }}
+                                    </button>
+                                </li>
+                            @endforeach
+                        </ul>
+                    </div>
                 </div>
+                <div class="card overflow-hidden">
+                    <div class="d-flex align-items-center justify-content-between gap-2 border-bottom px-3 py-2">
+                        <p class="mb-0 small fw-semibold">Aperçu A4</p>
+                        <a class="small" href="{{ route('cvs.preview', $resume) }}" target="_blank" rel="noopener">Ouvrir</a>
+                    </div>
+                    <div class="cvora-a4-frame" data-a4-frame>
+                        <iframe data-preview title="Aperçu A4 du CV" src="{{ route('cvs.preview', $resume) }}?cadre=1"></iframe>
+                    </div>
+                    <p class="small text-secondary mb-0 px-3 py-2">Première page, 210 × 297 mm. Le PDF et Word reprennent ces marges.</p>
+                </div>
+                <section class="card" data-coach data-coach-url="{{ route('cvs.coach', $resume) }}">
+                    <div class="card-body vstack gap-2">
+                        <h2 class="h6 mb-0">Conversation</h2>
+                        <p class="small text-secondary mb-0">Un message réserve un crédit ({{ $credits }} restant{{ $credits > 1 ? 's' : '' }}) et envoie le contenu professionnel du CV au fournisseur configuré. Le crédit est rendu si l'appel échoue. Le CV change seulement si vous utilisez une proposition.</p>
+                        <div class="cvora-coach-log vstack gap-2" data-coach-log aria-live="polite"></div>
+                        <div class="d-flex flex-wrap gap-2">
+                            <button class="btn btn-sm btn-outline-secondary" type="button" data-coach-prompt>Que manque-t-il pour un CV complet ?</button>
+                            <button class="btn btn-sm btn-outline-secondary" type="button" data-coach-prompt>Propose une formulation du résumé à partir des faits déjà saisis.</button>
+                        </div>
+                        <label class="form-label mb-0" for="coach-message">Message</label>
+                        <textarea class="form-control" id="coach-message" data-coach-input rows="3" maxlength="2000" placeholder="Décrivez ce que vous voulez reformuler"></textarea>
+                        <button class="btn btn-primary" type="button" data-coach-send>Envoyer</button>
+                        <p class="small text-secondary mb-0" data-coach-status></p>
+                    </div>
+                </section>
                 <div class="card">
                     <div class="card-body">
                         <p class="fw-semibold">Export</p>

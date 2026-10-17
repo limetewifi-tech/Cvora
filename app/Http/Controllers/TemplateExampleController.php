@@ -24,6 +24,7 @@ class TemplateExampleController extends Controller
         return view('resumes.paper', [
             'document' => $presenter->present(SampleDocument::resume($template)),
             'title' => 'Exemple de mise en page — '.$template->name,
+            'screen' => true,
         ]);
     }
 }

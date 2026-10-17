@@ -21,7 +21,7 @@ class DocxExporter
         $section = $phpWord->addSection($this->margins());
         $primary = ltrim($document['primary'], '#');
 
-        $section->addText($document['name'], ['bold' => true, 'size' => 22, 'color' => $primary], ['spaceAfter' => 80]);
+        $section->addText($document['name'], ['bold' => true, 'size' => 18, 'color' => $primary], ['spaceAfter' => 80]);
 
         if ($document['headline'] !== '') {
             $section->addText($document['headline'], ['italic' => true, 'size' => 12, 'color' => '374151'], ['spaceAfter' => 80]);
@@ -85,10 +85,11 @@ class DocxExporter
     private function margins(): array
     {
         return [
-            'marginTop' => 900,
-            'marginBottom' => 900,
-            'marginLeft' => 900,
-            'marginRight' => 900,
+            'paperSize' => 'A4',
+            'marginTop' => 794,
+            'marginBottom' => 794,
+            'marginLeft' => 680,
+            'marginRight' => 680,
         ];
     }
 

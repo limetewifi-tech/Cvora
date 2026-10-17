@@ -45,6 +45,7 @@ class FakeAiProvider implements AiProvider
             ],
             'cover_letter' => $this->letter($data),
             'job_analysis' => $this->analysis($data),
+            'coach' => $this->coach($data),
             'refresh' => [
                 'summary_proposal' => trim((string) ($data['summary'] ?? '')),
                 'experiences' => [],
@@ -58,6 +59,78 @@ class FakeAiProvider implements AiProvider
                 'warnings' => [],
             ],
         };
+    }
+
+    private function coach(array $data): array
+    {
+        $resume = is_array($data['resume'] ?? null) ? $data['resume'] : [];
+        $message = trim((string) ($data['message'] ?? ''));
+        $summary = trim((string) ($resume['summary'] ?? ''));
+        $missing = [];
+
+        if (blank($resume['headline'] ?? null)) {
+            $missing[] = 'Titre visé';
+        }
+
+        if ($summary === '') {
+            $missing[] = 'Résumé professionnel';
+        }
+
+        if (! $this->hasFact($resume['experiences'] ?? [], ['title', 'description'])) {
+            $missing[] = 'Expérience professionnelle';
+        }
+
+        if (! $this->hasFact($resume['education'] ?? [], ['degree', 'school'])) {
+            $missing[] = 'Formation';
+        }
+
+        if (! $this->hasFact($resume['skills'] ?? [], ['name'])) {
+            $missing[] = 'Compétence';
+        }
+
+        $suggestions = [];
+        $askedForSummary = preg_match('/r[eé]sum[eé]|formulation/iu', $message) === 1;
+
+        if ($summary !== '' && $askedForSummary) {
+            $suggestions[] = [
+                'target' => 'summary',
+                'index' => null,
+                'text' => $summary,
+                'label' => 'Formulation à partir du résumé saisi',
+            ];
+        }
+
+        $reply = $missing === []
+            ? 'Les sections principales sont présentes. Je peux reformuler un texte déjà saisi, sans ajouter de fait.'
+            : 'Il manque encore : '.implode(', ', $missing).'. Je ne complète pas ces éléments à votre place.';
+
+        return [
+            'reply' => $reply,
+            'suggestions' => $suggestions,
+            'missing_information' => $missing,
+            'warnings' => ['Aucun fait nouveau n\'a été ajouté.'],
+        ];
+    }
+
+    private function hasFact(mixed $rows, array $keys): bool
+    {
+        if (! is_array($rows)) {
+            return false;
+        }
+
+        foreach ($rows as $row) {
+            if (! is_array($row)) {
+                continue;
+            }
+
+            foreach ($keys as $key) {
+                if (filled($row[$key] ?? null)) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 
     private function letter(array $data): array
