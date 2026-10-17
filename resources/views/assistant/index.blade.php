@@ -2,7 +2,16 @@
 @section('document-title', 'Assistant IA')
 @section('content')
     <h1 class="h2">Assistant IA</h1>
-    <p class="text-secondary">Crédits restants : {{ $credits }}. Les propositions s'affichent ici et ne modifient rien tant que vous ne les appliquez pas dans l'éditeur.</p>
+    <p class="text-secondary">
+        Crédits restants : {{ $credits }}
+        @if ($creditAllowance > 0)
+            sur {{ $creditAllowance }} pour cette période.
+        @endif
+        @if ($creditsResetAt)
+            Prochain rechargement le {{ $creditsResetAt->timezone(config('app.timezone'))->format('d/m/Y') }}.
+        @endif
+        Un crédit est pris au début de l'appel et rendu si le fournisseur échoue. Les propositions ne modifient rien tant que vous ne les appliquez pas dans l'éditeur.
+    </p>
     <ul class="list-unstyled vstack gap-2 mt-3">
         @foreach ($providers as $name => $provider)
             <li class="card"><div class="card-body py-3">{{ $name }} · {{ ['configured' => 'configuré', 'incomplete' => 'incomplet', 'absent' => 'non configuré'][$provider['state']] }} · clé {{ $provider['key_present'] ? 'présente' : 'absente' }} · modèle {{ $provider['model'] !== '' ? $provider['model'] : 'absent' }}</div></li>
@@ -15,8 +24,10 @@
     @elseif (! $configured)
         <div class="alert alert-warning mt-3" role="status">Le fournisseur sélectionné est incomplet ou non configuré. Une clé seule ne suffit pas : l'identifiant de modèle doit aussi être renseigné dans le fichier <code>.env</code> du serveur. Exécutez <code>php artisan config:clear</code> puis redémarrez l'application. Aucune clé n'est envoyée au navigateur.</div>
     @endif
-    @if ($credits < 1)
-        <p class="small text-secondary mt-3 mb-0">Cet abonnement n'a plus de crédit IA. Un appel sera refusé tant qu'un crédit n'est pas disponible.</p>
+    @if ($credits < 1 && $creditAllowance > 0)
+        <p class="small text-secondary mt-3 mb-0">Les crédits de cette période sont utilisés. L'appel sera refusé jusqu'au rechargement.</p>
+    @elseif ($credits < 1)
+        <p class="small text-secondary mt-3 mb-0">Cet abonnement ne prévoit aucun crédit IA. Un appel sera refusé.</p>
     @endif
     @if (session('proposal'))
         <section class="card mt-3">

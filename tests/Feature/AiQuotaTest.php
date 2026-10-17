@@ -64,6 +64,46 @@ class AiQuotaTest extends TestCase
         $this->assertSame(100, $user->subscription()->first()->credits_remaining);
     }
 
+    public function test_a_balance_without_a_period_receives_the_plan_allowance_once(): void
+    {
+        $user = $this->makeUser();
+        $user->subscription->forceFill([
+            'credits_remaining' => 0,
+            'credits_reset_at' => null,
+        ])->save();
+
+        $this->actingAs($user)->get(route('assistant.index'))
+            ->assertOk()
+            ->assertSee('Crédits restants : 5')
+            ->assertSee('sur 5 pour cette période');
+
+        $fresh = $user->fresh()->subscription;
+        $this->assertSame(5, (int) $fresh->credits_remaining);
+        $this->assertNotNull($fresh->credits_reset_at);
+
+        $fresh->forceFill(['credits_remaining' => 2])->save();
+
+        $this->get(route('assistant.index'))->assertOk()->assertSee('Crédits restants : 2');
+        $this->assertSame(2, (int) $user->fresh()->subscription->credits_remaining);
+    }
+
+    public function test_a_spent_balance_stays_empty_until_the_period_ends(): void
+    {
+        $user = $this->makeUser();
+        $user->subscription->forceFill([
+            'credits_remaining' => 0,
+            'credits_reset_at' => now()->addDays(10),
+        ])->save();
+
+        $this->actingAs($user)->get(route('assistant.index'))
+            ->assertOk()
+            ->assertSee('Crédits restants : 0')
+            ->assertSee('sur 5 pour cette période')
+            ->assertSee('Les crédits de cette période sont utilisés');
+
+        $this->assertSame(0, (int) $user->fresh()->subscription->credits_remaining);
+    }
+
     public function test_ai_routes_are_rate_limited(): void
     {
         $route = app('router')->getRoutes()->getByName('assistant.summary');
