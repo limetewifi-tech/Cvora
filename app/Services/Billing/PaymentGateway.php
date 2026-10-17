@@ -13,7 +13,8 @@ interface PaymentGateway
     public function configured(): bool;
 
     /**
+     * @param  array<string, mixed>  $details
      * @return array{redirect_url?: string, mode: string}
      */
-    public function start(User $user, Plan $plan, Transaction $transaction): array;
+    public function start(User $user, Plan $plan, Transaction $transaction, array $details = []): array;
 }

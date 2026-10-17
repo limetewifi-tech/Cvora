@@ -60,27 +60,29 @@ Ces comptes ne doivent pas exister en production. Le mot de passe ci-dessus n'es
 
 ## Intelligence artificielle
 
-Le service central est `App\Services\Ai\AiCareerService`. Les prompts sont dans `App\Services\Ai\Prompts`. La clé reste dans `AI_API_KEY` et n'est jamais envoyée au navigateur.
+Le service métier reste `App\Services\Ai\AiCareerService`. Les prompts sont dans `App\Services\Ai\Prompts`. `App\Services\Ai\AiRouter` choisit un seul fournisseur et, en cas d'échec, peut appeler au plus une fois un repli différent.
 
-- Sans clé, l'assistant répond qu'il n'est pas configuré. Aucun texte n'est inventé à la place.
-- Avec une clé, le driver `openai` appelle une API compatible `/chat/completions` (`AI_BASE_URL`, `AI_MODEL`, `AI_TIMEOUT`).
-- Le driver `anthropic` appelle l'API Messages (`POST /v1/messages`, en-tête `x-api-key`). Si l'URL ou le modèle restent ceux d'OpenAI, le pilote utilise `https://api.anthropic.com` et `claude-sonnet-4-5`.
-- `AI_DRIVER=fake` ne sert qu'aux tests. Il est refusé si `APP_ENV=production`.
-- Chaque appel réserve un crédit. Le crédit est rendu si l'appel échoue. Une proposition n'est enregistrée qu'après confirmation de la personne.
-- Les textes importés et les offres d'emploi sont transmis comme des données, pas comme des instructions.
+Les clés restent dans l'environnement et ne sont ni envoyées au navigateur, ni écrites dans les réglages, ni recopiées dans les journaux :
+
+- `ANTHROPIC_API_KEY` et `ANTHROPIC_MODEL` pour l'API Messages d'Anthropic (`POST /v1/messages`, en-tête `x-api-key`) ;
+- `GEMINI_API_KEY` et `GEMINI_MODEL` pour l'API Gemini (`POST /v1beta/models/{modèle}:generateContent`, en-tête `x-goog-api-key`) ;
+- `GROQ_API_KEY` et `GROQ_MODEL` pour l'API compatible OpenAI de Groq (`POST /chat/completions`).
+
+Un fournisseur est utilisable seulement si sa clé et son identifiant de modèle sont tous les deux renseignés. Aucun modèle de remplacement n'est inventé. `AI_DRIVER` ou l'administration choisit `anthropic`, `gemini` ou `groq`. `AI_FALLBACK_DRIVER` est facultatif : il est ignoré s'il est vide, identique au fournisseur principal, ou non configuré. Le repli n'est pas tenté quand le fournisseur choisi n'a pas de clé. Une réponse JSON déjà reçue n'est pas suivie d'un second appel.
+
+`AI_DRIVER=fake` ne sert qu'aux tests. Il est refusé si `APP_ENV=production`. `php artisan cvora:ai-status` affiche la présence des clés et les identifiants de modèles, sans appel distant.
+
+Chaque appel métier réserve un crédit. Le crédit est rendu si toute la chaîne échoue. Une proposition n'est enregistrée qu'après confirmation de la personne. Les textes importés et les offres d'emploi sont transmis comme des données, pas comme des instructions.
+
+Aucun appel réel vers Anthropic, Gemini ou Groq n'a été effectué dans cette version. La commande de statut et les tests simulés ne prouvent pas qu'une clé ou qu'un modèle est accepté par le fournisseur.
 
 ## Paiements
 
-`PAYMENT_DRIVER=sandbox` affiche un écran de bac à sable. Confirmer ou refuser cet écran ne représente pas un encaissement réel.
+`PAYMENT_DRIVER=sandbox` affiche un écran de bac à sable. Confirmer ou refuser cet écran ne représente pas un encaissement réel. Cette confirmation exige encore l'en-tête `X-Cvora-Signature` (HMAC SHA-256 du corps brut, clé `PAYMENT_WEBHOOK_SECRET`) lorsqu'elle arrive par webhook.
 
-`PAYMENT_DRIVER=unipay` envoie une intention de paiement à `{UNIPAY_API_URL}/v1/payments`. Ce contrat doit être aligné sur la documentation marchande officielle avant tout usage. L'offre n'est activée qu'après une notification signée :
+`PAYMENT_DRIVER=ikeepay` utilise le paiement direct documenté par iKeePay : en-tête `x-api-key`, `POST /h2h-payin`, puis `GET /h2h-verify/{référence}`. Le formulaire demande le numéro, le code pays et l'opérateur. L'offre n'est activée que si la vérification renvoie un encaissement `completed`, de type `payin`, avec le même montant et la même devise. Une notification sans signature n'est pas considérée comme une preuve : elle déclenche seulement cette vérification. Un statut `pending` laisse la transaction en attente. Un statut `failed` la marque échouée. Un second succès ne réactive pas l'offre.
 
-- en-tête `X-Cvora-Signature` = HMAC SHA-256 du corps brut, clé `PAYMENT_WEBHOOK_SECRET` ;
-- montant et devise identiques à la transaction ;
-- référence fournisseur unique ;
-- un second envoi de la même notification réussie ne réactive pas l'offre.
-
-Sans les trois identifiants UniPay, le paiement est refusé et la transaction reste échouée ou en attente. Aucun paiement n'est simulé comme réussi.
+Sans `IKEEPAY_API_KEY` et `IKEEPAY_API_URL`, le paiement est refusé avant tout appel. Aucun paiement n'est simulé comme réussi. L'acceptation de la devise CDF n'a pas été constatée par un appel réel : ce dépôt n'a pas contacté `api.ikeepay.com`.
 
 Les prix, quotas et fonctionnalités des offres Gratuit, Premium et Pro sont en base et modifiables dans l'administration. Les valeurs du seeder (0, 15 000 et 35 000 CDF) sont un point de départ, pas une règle figée dans le code métier.
 
@@ -95,12 +97,12 @@ Les prix, quotas et fonctionnalités des offres Gratuit, Premium et Pro sont en 
 - Export PDF (Dompdf, police DejaVu) et DOCX Word modifiable (PHPWord), selon l'offre.
 - Import PDF texte et DOCX, relecture avant enregistrement, aucun écrasement sans case confirmée.
 - Lettres de motivation, historique manuel réservé à l'offre Pro.
-- Quotas IA, offres, transactions, bac à sable, webhook signé, espace d'administration.
+- Quotas IA, offres, transactions, bac à sable, vérification iKeePay simulée, espace d'administration.
 
 ## Ce qui demande encore une configuration externe
 
-- Appels IA réels : renseigner `AI_API_KEY`.
-- Mobile Money : identifiants marchands UniPay, secret de webhook, et validation du contrat HTTP avec la documentation du prestataire.
+- Appels IA réels : renseigner la clé et l'identifiant de modèle du fournisseur choisi, puis vérifier le résultat hors de la suite de tests. `php artisan cvora:ai-status` ne contacte pas le fournisseur.
+- Mobile Money : `IKEEPAY_API_KEY`, l'URL de notification saisie dans le tableau de bord iKeePay, et un paiement réel de contrôle. Le bac à sable de CVora n'encaisse rien.
 - OCR : un PDF scanné est signalé. `OcrExtractor` est branché sur `NullOcrExtractor`. Aucun service OCR n'est appelé.
 - Connexion par téléphone : `PhoneAuthenticator` indique que le SMS n'est pas configuré. Il n'existe pas de bouton de connexion fictif.
 - E-mails réels : driver mail de production.
@@ -110,10 +112,11 @@ Les prix, quotas et fonctionnalités des offres Gratuit, Premium et Pro sont en 
 
 ```bash
 php artisan test
+php artisan cvora:ai-status
 ```
 
-Les tests utilisent SQLite en mémoire, `AI_DRIVER=fake` et `PAYMENT_DRIVER=sandbox`. Ils ne contactent aucun service payant.
+Les tests utilisent SQLite en mémoire, `AI_DRIVER=fake` et `PAYMENT_DRIVER=sandbox`. Ils simulent Anthropic, Gemini, Groq et iKeePay. Ils ne contactent aucun service payant. `cvora:ai-status` ne lance pas non plus d'appel distant.
 
 ## Sécurité
 
-Les secrets restent dans `.env`, qui n'est pas versionné. `.env.example` ne contient aucune clé réelle. Les documents importés sont stockés sur le disque privé. Les routes sensibles et les appels IA sont limités en fréquence. Le webhook de paiement est exclu de la protection CSRF et vérifié par signature.
+Les secrets restent dans `.env`, qui n'est pas versionné. `.env.example` ne contient aucune clé réelle. Les documents importés sont stockés sur le disque privé. Les routes sensibles et les appels IA sont limités en fréquence. Le webhook de paiement est exclu de la protection CSRF. Le bac à sable vérifie la signature HMAC. iKeePay est revérifié auprès de son API avant d'activer une offre, et le numéro de téléphone n'est pas recopié dans le journal.

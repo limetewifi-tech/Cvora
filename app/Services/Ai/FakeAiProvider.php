@@ -10,6 +10,11 @@ use App\Exceptions\AiException;
  */
 class FakeAiProvider implements AiProvider
 {
+    public function name(): string
+    {
+        return 'fake';
+    }
+
     public function configured(): bool
     {
         return true;

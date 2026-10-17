@@ -4,7 +4,7 @@
     <h1 class="h2">Assistant IA</h1>
     <p class="text-secondary">Crédits restants : {{ $credits }}. Les propositions s'affichent ici et ne modifient rien tant que vous ne les appliquez pas dans l'éditeur.</p>
     @unless ($configured)
-        <div class="alert alert-warning mt-3">Le fournisseur d'IA n'est pas configuré. Ajoutez AI_API_KEY sur le serveur. Aucune clé n'est envoyée au navigateur.</div>
+        <div class="alert alert-warning mt-3">Le fournisseur d'IA n'est pas configuré. Ajoutez ANTHROPIC_API_KEY, GEMINI_API_KEY ou GROQ_API_KEY sur le serveur, avec l'identifiant de modèle correspondant. Aucune clé n'est envoyée au navigateur.</div>
     @endunless
     @if (session('proposal'))
         <section class="card mt-3">

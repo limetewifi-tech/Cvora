@@ -79,7 +79,11 @@ class AdminTest extends TestCase
         $admin = $this->makeUser('pro', ['role' => UserRole::Admin]);
 
         $this->actingAs($admin)->put(route('admin.settings.update'), [
-            'ai_model' => 'gpt-4o-mini',
+            'ai_driver' => 'anthropic',
+            'ai_fallback_driver' => 'groq',
+            'anthropic_model' => 'modele-anthropic-test',
+            'gemini_model' => 'modele-gemini-test',
+            'groq_model' => 'modele-groq-test',
             'legal_name' => 'CVora',
             'contact_email' => 'contact@cvora.test',
             'feature_ai' => '1',
@@ -89,8 +93,11 @@ class AdminTest extends TestCase
             'feature_exports' => '1',
         ])->assertSessionHas('success');
 
-        $this->assertDatabaseMissing('settings', ['key' => 'AI_API_KEY']);
-        $this->assertDatabaseHas('settings', ['key' => 'ai_model', 'value' => 'gpt-4o-mini']);
+        foreach (['AI_API_KEY', 'ANTHROPIC_API_KEY', 'GEMINI_API_KEY', 'GROQ_API_KEY', 'IKEEPAY_API_KEY'] as $secret) {
+            $this->assertDatabaseMissing('settings', ['key' => $secret]);
+        }
+
+        $this->assertDatabaseHas('settings', ['key' => 'anthropic_model', 'value' => 'modele-anthropic-test']);
         $this->get(route('admin.ai'))->assertDontSee('sk-');
     }
 }
