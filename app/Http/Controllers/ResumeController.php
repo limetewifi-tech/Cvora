@@ -190,7 +190,7 @@ class ResumeController extends Controller
     {
         $this->authorize('update', $resume);
         $data = $request->validate([
-            'target' => ['required', 'in:summary,experience,skill,section_order'],
+            'target' => ['required', 'in:summary,headline,experience,education,skill,section_order'],
             'value' => ['nullable', 'string', 'max:4000'],
             'index' => ['nullable', 'integer', 'min:0'],
             'order' => ['nullable', 'array'],

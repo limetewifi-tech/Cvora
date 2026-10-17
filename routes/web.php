@@ -24,6 +24,7 @@ use App\Http\Controllers\ResumeExportController;
 use App\Http\Controllers\ResumeImportController;
 use App\Http\Controllers\ResumeVersionController;
 use App\Http\Controllers\SettingsController;
+use App\Http\Controllers\StartController;
 use App\Http\Controllers\StudioController;
 use App\Http\Controllers\TemplateExampleController;
 use Illuminate\Support\Facades\Route;
@@ -64,6 +65,8 @@ Route::middleware(['auth', 'active', 'verified.if', 'plan'])->group(function () 
     Route::post('/deconnexion', [AuthenticatedSessionController::class, 'destroy'])->name('logout');
 
     Route::get('/tableau-de-bord', [DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/commencer', [StartController::class, 'index'])->name('start.index');
+    Route::post('/commencer', [StartController::class, 'store'])->name('start.store');
     Route::get('/profil', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::put('/profil', [ProfileController::class, 'update'])->name('profile.update');
     Route::get('/parametres', [SettingsController::class, 'edit'])->name('settings.edit');
@@ -79,6 +82,7 @@ Route::middleware(['auth', 'active', 'verified.if', 'plan'])->group(function () 
     Route::post('/abonnement/{plan:slug}', [BillingController::class, 'checkout'])->name('billing.checkout');
 
     Route::get('/assistant', [AssistantController::class, 'index'])->name('assistant.index');
+    Route::post('/assistant/demande', [AssistantController::class, 'ask'])->middleware('throttle:ai')->name('assistant.ask');
     Route::post('/assistant/resume', [AssistantController::class, 'summary'])->middleware('throttle:ai')->name('assistant.summary');
     Route::post('/assistant/experiences', [AssistantController::class, 'experiences'])->middleware('throttle:ai')->name('assistant.experiences');
     Route::post('/assistant/competences', [AssistantController::class, 'skills'])->middleware('throttle:ai')->name('assistant.skills');

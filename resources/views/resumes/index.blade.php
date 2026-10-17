@@ -3,7 +3,10 @@
 @section('content')
     <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
         <h1 class="h2 mb-0">Mes CV</h1>
-        <a class="btn btn-primary" href="{{ route('cvs.create') }}">Créer un CV</a>
+        <div class="d-flex flex-wrap gap-2">
+            <a class="btn btn-primary" href="{{ route('start.index', ['objectif' => 'creer']) }}">Créer un CV</a>
+            <a class="btn btn-outline-primary" href="{{ route('imports.create') }}">Importer</a>
+        </div>
     </div>
     <div class="vstack gap-3 mt-4">
         @forelse ($resumes as $resume)

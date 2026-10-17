@@ -128,6 +128,10 @@ class StudioTest extends TestCase
             'cvora.ai.providers.anthropic.api_key' => 'studio-test-key',
             'cvora.ai.providers.anthropic.model' => 'modele-studio',
             'cvora.ai.providers.anthropic.base_url' => 'https://api.anthropic.test',
+            'cvora.ai.providers.gemini.api_key' => '',
+            'cvora.ai.providers.gemini.model' => '',
+            'cvora.ai.providers.groq.api_key' => '',
+            'cvora.ai.providers.groq.model' => '',
         ]);
         $this->app->forgetInstance(AiProvider::class);
         Http::preventStrayRequests();

@@ -20,12 +20,19 @@ class AiCareerService
         private QuotaService $quota,
     ) {}
 
-    public function improveSummary(User $user, string $summary, string $tone = 'professionnel'): AiProposal
+    public function improveSummary(User $user, string $summary, string $tone = 'professionnel', string $goal = ''): AiProposal
     {
+        $instruction = 'Reformule le résumé sans ajouter de fait.';
+
+        if (trim($goal) !== '') {
+            $instruction .= ' Objectif indiqué par le candidat : '.trim($goal);
+        }
+
         return $this->run($user, 'summary', [
             'text' => $summary,
             'tone' => $tone,
-            'instruction' => 'Reformule le résumé sans ajouter de fait.',
+            'goal' => trim($goal),
+            'instruction' => $instruction,
         ]);
     }
 

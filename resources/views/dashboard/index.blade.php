@@ -2,7 +2,33 @@
 @section('document-title', 'Vue d\'ensemble')
 @section('content')
     <h1 class="h2">Bonjour {{ auth()->user()->profile?->first_name ?: auth()->user()->name }}</h1>
-    <p class="text-secondary">Vos chiffres proviennent uniquement de votre compte.</p>
+    <p class="text-secondary">Choisissez une action. Vos chiffres proviennent uniquement de votre compte.</p>
+    <div class="row g-3 mt-1">
+        <div class="col-md-4">
+            <a class="card h-100 text-decoration-none" href="{{ route('start.index', ['objectif' => 'creer']) }}">
+                <div class="card-body">
+                    <h2 class="h5">Créer un CV</h2>
+                    <p class="small text-secondary mb-0">Ouvrir un document et son aperçu A4.</p>
+                </div>
+            </a>
+        </div>
+        <div class="col-md-4">
+            <a class="card h-100 text-decoration-none" href="{{ route('start.index', ['objectif' => 'ameliorer']) }}">
+                <div class="card-body">
+                    <h2 class="h5">Améliorer un CV</h2>
+                    <p class="small text-secondary mb-0">Continuer, importer, ou demander une reformulation.</p>
+                </div>
+            </a>
+        </div>
+        <div class="col-md-4">
+            <a class="card h-100 text-decoration-none" href="{{ route('start.index', ['objectif' => 'offre']) }}">
+                <div class="card-body">
+                    <h2 class="h5">Répondre à une offre</h2>
+                    <p class="small text-secondary mb-0">Comparer un CV au texte d'une annonce.</p>
+                </div>
+            </a>
+        </div>
+    </div>
     <div class="row g-3 mt-1">
         <div class="col-sm-4"><article class="card h-100"><div class="card-body"><p class="small text-secondary mb-1">CV enregistrés</p><p class="display-6 fw-semibold mb-0">{{ $resumeCount }}</p></div></article></div>
         <div class="col-sm-4"><article class="card h-100"><div class="card-body"><p class="small text-secondary mb-1">Lettres enregistrées</p><p class="display-6 fw-semibold mb-0">{{ $letterCount }}</p></div></article></div>
@@ -55,13 +81,11 @@
         </aside>
     </div>
     <section class="mt-4">
-        <h2 class="h5">Actions rapides</h2>
+        <h2 class="h5">Autres actions</h2>
         <div class="d-flex flex-wrap gap-2 mt-3">
-            <a class="btn btn-primary" href="{{ route('cvs.create') }}">Créer un CV</a>
-            <a class="btn btn-outline-primary" href="{{ route('imports.create') }}">Importer</a>
+            <a class="btn btn-outline-primary" href="{{ route('assistant.index') }}">Assistant</a>
             <a class="btn btn-outline-primary" href="{{ route('letters.create') }}">Nouvelle lettre</a>
-            <a class="btn btn-outline-primary" href="{{ route('assistant.index') }}">Assistant IA</a>
-            <a class="btn btn-outline-primary" href="{{ route('studio.index') }}">Studio CV</a>
+            <a class="btn btn-outline-primary" href="{{ route('imports.create') }}">Importer un CV</a>
         </div>
     </section>
     @if ($notifications->isNotEmpty())

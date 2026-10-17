@@ -186,6 +186,37 @@ class AiProvidersTest extends TestCase
         Http::assertSentCount(2);
     }
 
+    public function test_an_empty_fallback_uses_the_next_configured_provider_once(): void
+    {
+        config([
+            'cvora.ai.driver' => 'anthropic',
+            'cvora.ai.fallback' => '',
+            'cvora.ai.providers.anthropic.api_key' => 'anthropic-test-key',
+            'cvora.ai.providers.anthropic.model' => 'modele-anthropic',
+            'cvora.ai.providers.anthropic.base_url' => 'https://api.anthropic.test',
+            'cvora.ai.providers.gemini.api_key' => 'gemini-test-key',
+            'cvora.ai.providers.gemini.model' => 'modele-gemini',
+            'cvora.ai.providers.gemini.base_url' => 'https://generativelanguage.googleapis.test',
+            'cvora.ai.providers.groq.api_key' => 'groq-test-key',
+            'cvora.ai.providers.groq.model' => 'modele-groq',
+            'cvora.ai.providers.groq.base_url' => 'https://api.groq.test/openai/v1',
+        ]);
+        $this->app->forgetInstance(AiProvider::class);
+
+        Http::fake([
+            'https://api.anthropic.test/*' => Http::response(['error' => 'unavailable'], 503),
+            'https://generativelanguage.googleapis.test/*' => Http::response([
+                'candidates' => [
+                    ['content' => ['parts' => [['text' => '{"proposal":"Secours"}']]]],
+                ],
+            ]),
+            'https://api.groq.test/*' => Http::response(['error' => 'should-not-run'], 500),
+        ]);
+
+        $this->assertSame('Secours', app(AiRouter::class)->complete('systeme', 'donnees')['proposal']);
+        Http::assertSentCount(2);
+    }
+
     public function test_a_successful_response_does_not_call_the_fallback(): void
     {
         config([

@@ -204,8 +204,15 @@ class ResumeWriter
 
         if ($target === 'summary') {
             $resume->summary = ResumeContent::clean($payload['value'] ?? '', 4000, true);
+        } elseif ($target === 'headline') {
+            $personal = is_array($resume->personal) ? $resume->personal : ResumeContent::emptyPersonal();
+            $personal['headline'] = ResumeContent::clean($payload['value'] ?? '', 160);
+            $resume->personal = ResumeContent::normalizePersonal($personal);
         } elseif ($target === 'experience' && isset($content['experiences'][(int) ($payload['index'] ?? -1)])) {
             $content['experiences'][(int) $payload['index']]['description'] = ResumeContent::clean($payload['value'] ?? '', 4000, true);
+            $resume->content = $content;
+        } elseif ($target === 'education' && isset($content['education'][(int) ($payload['index'] ?? -1)])) {
+            $content['education'][(int) $payload['index']]['description'] = ResumeContent::clean($payload['value'] ?? '', 4000, true);
             $resume->content = $content;
         } elseif ($target === 'skill' && isset($content['skills'][(int) ($payload['index'] ?? -1)])) {
             $content['skills'][(int) $payload['index']]['name'] = ResumeContent::clean($payload['value'] ?? '', 200);

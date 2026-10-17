@@ -21,7 +21,11 @@
             <p class="small text-secondary mb-0" data-save-status>Les modifications de texte sont enregistrées automatiquement.</p>
         </div>
         <div class="d-flex flex-wrap gap-2">
+            <a class="btn btn-outline-primary" href="{{ route('assistant.index', ['cv' => $resume->id]) }}">Améliorer avec l'IA</a>
             <a class="btn btn-outline-primary" href="{{ route('cvs.preview', $resume) }}" target="_blank" rel="noopener">Format A4</a>
+            @if ($quota->allows(auth()->user(), 'export_pdf'))
+                <a class="btn btn-primary" href="{{ route('cvs.export', [$resume, 'pdf']) }}">Télécharger le PDF</a>
+            @endif
             <a class="btn btn-outline-primary" href="{{ route('cvs.versions', $resume) }}">Versions</a>
             <a class="btn btn-outline-danger" href="{{ route('cvs.delete', $resume) }}">Supprimer</a>
         </div>
