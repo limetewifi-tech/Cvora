@@ -46,6 +46,7 @@ class FakeAiProvider implements AiProvider
             'cover_letter' => $this->letter($data),
             'job_analysis' => $this->analysis($data),
             'coach' => $this->coach($data),
+            'proofread' => $this->proofread($data),
             'refresh' => [
                 'summary_proposal' => trim((string) ($data['summary'] ?? '')),
                 'experiences' => [],
@@ -109,6 +110,36 @@ class FakeAiProvider implements AiProvider
             'suggestions' => $suggestions,
             'missing_information' => $missing,
             'warnings' => ['Aucun fait nouveau n\'a été ajouté.'],
+        ];
+    }
+
+    private function proofread(array $data): array
+    {
+        $items = [];
+
+        foreach ($data['items'] ?? [] as $item) {
+            if (! is_array($item)) {
+                continue;
+            }
+
+            $text = trim((string) ($item['text'] ?? ''));
+
+            if ($text === '') {
+                continue;
+            }
+
+            $index = $item['index'] ?? null;
+            $items[] = [
+                'target' => (string) ($item['target'] ?? 'summary'),
+                'index' => is_numeric($index) ? (int) $index : null,
+                'text' => $text,
+            ];
+        }
+
+        return [
+            'items' => $items,
+            'missing_information' => $items === [] ? ['Texte à corriger'] : [],
+            'warnings' => ['Le texte d\'origine est conservé. Aucun fait nouveau n\'a été ajouté.'],
         ];
     }
 

@@ -32,6 +32,11 @@ class ResumeCoachTest extends TestCase
             ->assertSee('7 éléments prêts sur 7')
             ->assertSee('Conversation')
             ->assertSee('Améliorer ce texte')
+            ->assertSee('Corriger l\'orthographe', false)
+            ->assertSee('Rendre le français plus clair')
+            ->assertSee('Afficher seulement ce qui reste')
+            ->assertSee('Cette partie est déjà remplie')
+            ->assertSee('Retenir ce modèle')
             ->assertSee('cadre=1', false);
 
         $this->get(route('cvs.preview', $resume))
@@ -53,7 +58,44 @@ class ResumeCoachTest extends TestCase
 
         $this->assertStringContainsString('size: A4 portrait', $print);
         $this->assertStringContainsString('margin: 14mm 12mm', $print);
+        $this->assertStringContainsString('print-color-adjust: exact', $print);
         $this->assertStringNotContainsString('Imprimer ou enregistrer en PDF', $print);
+    }
+
+    public function test_proofreading_returns_the_existing_text_and_leaves_the_resume_unchanged(): void
+    {
+        $user = $this->makeUser();
+        $resume = $this->makeResume($user);
+
+        $this->actingAs($user)->postJson(route('cvs.proofread', $resume), [
+            'mode' => 'spelling',
+        ])->assertOk()
+            ->assertJsonPath('successful', true)
+            ->assertJsonPath('suggestions.0.target', 'summary')
+            ->assertJsonPath('suggestions.0.text', 'Analyste à Kinshasa.')
+            ->assertJsonPath('suggestions.1.text', 'Suivi des dossiers clients.')
+            ->assertJsonPath('credits_remaining', 4);
+
+        $this->assertSame('Analyste à Kinshasa.', $resume->fresh()->summary);
+        $this->assertSame(4, (int) $user->fresh()->subscription->credits_remaining);
+        $this->assertContains('throttle:ai', app('router')->getRoutes()->getByName('cvs.proofread')->gatherMiddleware());
+    }
+
+    public function test_proofreading_refuses_an_empty_resume_without_spending_a_credit(): void
+    {
+        $user = $this->makeUser();
+        $resume = $this->makeResume($user, ['summary' => '']);
+        $content = $resume->content;
+        $content['experiences'][0]['description'] = '';
+        $content['education'][0]['description'] = '';
+        $resume->forceFill(['content' => $content])->save();
+
+        $this->actingAs($user)->postJson(route('cvs.proofread', $resume), [
+            'mode' => 'clarity',
+        ])->assertStatus(422)
+            ->assertJsonPath('successful', false);
+
+        $this->assertSame(5, (int) $user->fresh()->subscription->credits_remaining);
     }
 
     public function test_the_conversation_proposes_only_existing_facts_and_leaves_the_resume_unchanged(): void

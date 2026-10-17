@@ -104,6 +104,8 @@ Route::middleware(['auth', 'active', 'verified.if', 'plan'])->group(function () 
         Route::post('/cvs/{resume}/dupliquer', [ResumeController::class, 'duplicate'])->name('cvs.duplicate');
         Route::get('/cvs/{resume}/apercu', [ResumeController::class, 'preview'])->name('cvs.preview');
         Route::post('/cvs/{resume}/conversation', [ResumeCoachController::class, 'store'])->middleware('throttle:ai')->name('cvs.coach');
+        Route::post('/cvs/{resume}/correction', [ResumeCoachController::class, 'proofread'])->middleware('throttle:ai')->name('cvs.proofread');
+        Route::post('/cvs/{resume}/modele', [ResumeController::class, 'preferTemplate'])->name('cvs.prefer-template');
         Route::get('/cvs/{resume}/export/{format}', [ResumeExportController::class, 'download'])->whereIn('format', ['pdf', 'docx'])->name('cvs.export');
         Route::get('/cvs/{resume}/versions', [ResumeVersionController::class, 'index'])->name('cvs.versions');
         Route::post('/cvs/{resume}/versions', [ResumeVersionController::class, 'store'])->name('cvs.versions.store');

@@ -27,9 +27,10 @@
             </div>
             <fieldset>
                 <legend class="form-label mb-1">Choisissez un modèle</legend>
-                <p class="small text-secondary">Moderne est déjà sélectionné. Vous pourrez changer de mise en page dans l'éditeur. Les modèles Premium demandent l'abonnement correspondant.</p>
+                <p class="small text-secondary">Votre modèle retenu est sélectionné lorsqu'il est disponible. Sinon, Moderne est proposé. Vous pourrez changer de mise en page dans l'éditeur.</p>
                 @php
-                    $defaultTemplate = $templates->first(fn ($template) => ! $template->is_premium || $quota->allows(auth()->user(), 'premium_templates'));
+                    $preferred = $templates->first(fn ($template) => $template->slug === ($preferredSlug ?? null) && (! $template->is_premium || $quota->allows(auth()->user(), 'premium_templates')));
+                    $defaultTemplate = $preferred ?? $templates->first(fn ($template) => ! $template->is_premium || $quota->allows(auth()->user(), 'premium_templates'));
                 @endphp
                 @if ($templates->isEmpty())
                     <p class="alert alert-warning mb-0">Aucun modèle n'est disponible pour le moment.</p>

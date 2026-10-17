@@ -37,6 +37,7 @@ class ResumeController extends Controller
             'plan' => $quota->plan($user),
             'resumeCount' => $user->resumes()->count(),
             'defaultTitle' => $user->profile?->first_name ? 'CV de '.$user->profile->first_name : 'Mon CV',
+            'preferredSlug' => $user->profile?->preference('default_template'),
         ]);
     }
 
@@ -60,6 +61,48 @@ class ResumeController extends Controller
         }
 
         return redirect()->route('cvs.edit', $resume)->with('success', 'Votre CV a été créé. Les informations du profil ont été reprises lorsqu\'elles existaient.');
+    }
+
+    public function preferTemplate(Request $request, Resume $resume)
+    {
+        $this->authorize('update', $resume);
+
+        $data = $request->validate([
+            'template_id' => ['nullable', 'integer'],
+        ]);
+
+        $template = filled($data['template_id'] ?? null)
+            ? ResumeTemplate::query()->where('is_active', true)->find($data['template_id'])
+            : $resume->template;
+
+        if (! $template) {
+            return $this->preferResponse($request, false, 'Ce modèle n\'est pas disponible.');
+        }
+
+        try {
+            app(QuotaService::class)->assertCanUseTemplate($request->user(), $template->is_premium);
+        } catch (PlanLimitException $exception) {
+            return $this->preferResponse($request, false, $exception->getMessage());
+        }
+
+        $profile = $request->user()->profile()->firstOrCreate(['user_id' => $request->user()->id]);
+        $preferences = $profile->preferences ?? [];
+        $preferences['default_template'] = $template->slug;
+        $profile->forceFill(['preferences' => $preferences])->save();
+
+        return $this->preferResponse($request, true, 'Ce modèle sera proposé pour vos prochains CV.');
+    }
+
+    private function preferResponse(Request $request, bool $successful, string $message)
+    {
+        if ($request->expectsJson()) {
+            return response()->json([
+                'successful' => $successful,
+                'message' => $message,
+            ], $successful ? 200 : 422);
+        }
+
+        return back()->with($successful ? 'success' : 'error', $message);
     }
 
     public function edit(Request $request, Resume $resume)

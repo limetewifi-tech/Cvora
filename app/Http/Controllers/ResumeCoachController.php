@@ -47,6 +47,39 @@ class ResumeCoachController extends Controller
         ], $proposal->successful ? 200 : 422);
     }
 
+    public function proofread(Request $request, Resume $resume, AiCareerService $ai): JsonResponse
+    {
+        $this->authorize('update', $resume);
+
+        $data = $request->validate([
+            'mode' => ['required', 'in:spelling,clarity'],
+        ]);
+
+        $items = $this->texts($resume);
+
+        if ($items === []) {
+            return response()->json([
+                'successful' => false,
+                'error' => 'Aucun texte n\'est encore saisi. Écrivez un résumé, une expérience ou une formation avant de demander une correction.',
+                'suggestions' => [],
+            ], 422);
+        }
+
+        $proposal = $ai->proofread($request->user(), [
+            'mode' => $data['mode'],
+            'items' => $items,
+        ]);
+
+        return response()->json([
+            'successful' => $proposal->successful,
+            'suggestions' => $proposal->successful ? $this->proofSuggestions($proposal->data, $items, $data['mode']) : [],
+            'missing' => $proposal->missing,
+            'warnings' => $proposal->warnings,
+            'error' => $proposal->error,
+            'credits_remaining' => $proposal->creditsRemaining,
+        ], $proposal->successful ? 200 : 422);
+    }
+
     /**
      * @return array<string, mixed>
      */
@@ -93,6 +126,74 @@ class ResumeCoachController extends Controller
                 'index' => is_numeric($index) ? max(0, (int) $index) : null,
                 'text' => mb_substr($text, 0, 4000),
                 'label' => mb_substr($label !== '' ? $label : 'Proposition', 0, 120),
+            ];
+        }
+
+        return $suggestions;
+    }
+
+    /**
+     * @return array<int, array{target: string, index: int|null, text: string}>
+     */
+    private function texts(Resume $resume): array
+    {
+        $content = is_array($resume->content) ? $resume->content : [];
+        $items = [];
+        $summary = trim((string) $resume->summary);
+
+        if ($summary !== '') {
+            $items[] = ['target' => 'summary', 'index' => null, 'text' => $summary];
+        }
+
+        foreach (['experiences' => 'experience', 'education' => 'education'] as $section => $target) {
+            foreach (array_values($content[$section] ?? []) as $index => $row) {
+                if (! is_array($row)) {
+                    continue;
+                }
+
+                $text = trim((string) ($row['description'] ?? ''));
+
+                if ($text === '') {
+                    continue;
+                }
+
+                $items[] = ['target' => $target, 'index' => $index, 'text' => $text];
+            }
+        }
+
+        return $items;
+    }
+
+    /**
+     * @param  array<string, mixed>  $data
+     * @param  array<int, array{target: string, index: int|null, text: string}>  $known
+     * @return array<int, array{target: string, index: int|null, text: string, label: string}>
+     */
+    private function proofSuggestions(array $data, array $known, string $mode): array
+    {
+        $label = $mode === 'clarity' ? 'Français plus clair' : 'Orthographe';
+        $suggestions = [];
+
+        foreach ($data['items'] ?? [] as $item) {
+            if (! is_array($item)) {
+                continue;
+            }
+
+            $target = (string) ($item['target'] ?? '');
+            $index = $item['index'] ?? null;
+            $index = is_numeric($index) ? (int) $index : null;
+            $text = trim((string) ($item['text'] ?? ''));
+            $matches = collect($known)->contains(fn (array $knownItem) => $knownItem['target'] === $target && $knownItem['index'] === $index);
+
+            if ($text === '' || ! $matches) {
+                continue;
+            }
+
+            $suggestions[] = [
+                'target' => $target,
+                'index' => $index,
+                'text' => mb_substr($text, 0, 4000),
+                'label' => $label,
             ];
         }
 

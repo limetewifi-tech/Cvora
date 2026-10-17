@@ -126,8 +126,16 @@ if (form) {
         }
     };
 
-    form.addEventListener('input', schedule);
-    form.addEventListener('change', schedule);
+    const scheduleFromField = (event) => {
+        if (event.target?.matches('[data-hide-done]')) {
+            return;
+        }
+
+        schedule();
+    };
+
+    form.addEventListener('input', scheduleFromField);
+    form.addEventListener('change', scheduleFromField);
     form.addEventListener('submit', () => {
         generation++;
         clearTimeout(timer);
@@ -137,6 +145,7 @@ if (form) {
     document.querySelectorAll('[data-step]').forEach((button) => {
         button.addEventListener('click', () => {
             const target = document.getElementById(button.dataset.step);
+            openSection(target);
             target?.scrollIntoView({ behavior: 'smooth', block: 'start' });
             document.querySelectorAll('[data-step]').forEach((item) => item.removeAttribute('aria-current'));
             button.setAttribute('aria-current', 'step');
@@ -237,9 +246,79 @@ if (form) {
         return form.querySelector(`${selector}[data-coach-index="${index}"]`);
     };
 
+    const openSection = (section) => {
+        if (!section) {
+            return;
+        }
+
+        section.dataset.pinned = '1';
+        const body = section.querySelector('[data-section-body]');
+        const note = section.querySelector('[data-section-note]');
+        const opener = section.querySelector('[data-section-open]');
+
+        if (body) {
+            body.hidden = false;
+        }
+
+        if (note) {
+            note.hidden = true;
+        }
+
+        if (opener) {
+            opener.hidden = true;
+        }
+    };
+
+    const sectionIsDone = (section) => {
+        if (section.dataset.sectionMode === 'optional') {
+            return [...section.querySelectorAll('[data-section-body] input, [data-section-body] textarea')].some((field) => {
+                if (field.type === 'hidden' || field.type === 'checkbox' || field.type === 'radio' || field.type === 'submit') {
+                    return false;
+                }
+
+                return field.value.trim() !== '';
+            });
+        }
+
+        const group = section.dataset.sectionGroup || '';
+        const items = [...document.querySelectorAll(`[data-readiness-item][data-readiness-group="${group}"]`)];
+
+        return items.length > 0 && items.every((item) => item.dataset.done === '1');
+    };
+
+    const filterSections = () => {
+        const hide = document.querySelector('[data-hide-done]')?.checked;
+
+        document.querySelectorAll('[data-editor-section]').forEach((section) => {
+            const body = section.querySelector('[data-section-body]');
+            const note = section.querySelector('[data-section-note]');
+            const opener = section.querySelector('[data-section-open]');
+            const collapse = Boolean(hide) && section.dataset.pinned !== '1' && sectionIsDone(section);
+
+            if (body) {
+                body.hidden = collapse;
+            }
+
+            if (note) {
+                note.hidden = !collapse;
+            }
+
+            if (opener) {
+                opener.hidden = !collapse;
+            }
+        });
+    };
+
+    document.querySelector('[data-hide-done]')?.addEventListener('change', filterSections);
+    document.querySelectorAll('[data-section-open]').forEach((button) => {
+        button.addEventListener('click', () => openSection(button.closest('[data-editor-section]')));
+    });
+
     document.querySelectorAll('[data-jump]').forEach((button) => {
         button.addEventListener('click', () => {
-            document.getElementById(button.dataset.jump)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            const target = document.getElementById(button.dataset.jump);
+            openSection(target);
+            target?.scrollIntoView({ behavior: 'smooth', block: 'start' });
         });
     });
 
@@ -426,7 +505,122 @@ if (form) {
         });
     }
 
+    const proofread = document.querySelector('[data-proofread]');
+
+    if (proofread) {
+        const output = proofread.querySelector('[data-proofread-output]');
+        const proofStatus = proofread.querySelector('[data-proofread-status]');
+
+        proofread.querySelectorAll('[data-proofread-mode]').forEach((button) => {
+            button.addEventListener('click', async () => {
+                button.disabled = true;
+                proofStatus.textContent = 'Correction en cours…';
+
+                try {
+                    const response = await fetch(proofread.dataset.proofreadUrl, {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRF-TOKEN': token,
+                            Accept: 'application/json',
+                            'Content-Type': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest',
+                        },
+                        body: JSON.stringify({ mode: button.dataset.proofreadMode }),
+                    });
+                    const data = await response.json().catch(() => ({}));
+                    output.replaceChildren();
+
+                    if (!response.ok || !data.successful) {
+                        proofStatus.textContent = data.error || 'La correction est indisponible.';
+
+                        return;
+                    }
+
+                    (data.suggestions || []).forEach((suggestion) => {
+                        const wrap = document.createElement('div');
+                        wrap.className = 'border rounded p-2';
+                        const label = document.createElement('p');
+                        label.className = 'small fw-semibold mb-1';
+                        label.textContent = suggestion.label || 'Proposition';
+                        const quote = document.createElement('p');
+                        quote.className = 'small mb-2';
+                        quote.textContent = suggestion.text;
+                        const use = document.createElement('button');
+                        use.type = 'button';
+                        use.className = 'btn btn-sm btn-outline-primary';
+                        use.textContent = 'Utiliser cette proposition';
+                        use.addEventListener('click', () => {
+                            const field = coachField(suggestion.target, suggestion.index);
+
+                            if (!field) {
+                                proofStatus.textContent = 'Le champ correspondant n\'est pas ouvert.';
+
+                                return;
+                            }
+
+                            openSection(field.closest('[data-editor-section]'));
+                            field.value = suggestion.text;
+                            field.dispatchEvent(new Event('input', { bubbles: true }));
+                            field.focus();
+                            proofStatus.textContent = 'Proposition placée dans le formulaire.';
+                        });
+                        wrap.append(label, quote, use);
+                        output.append(wrap);
+                    });
+
+                    proofStatus.textContent = typeof data.credits_remaining === 'number'
+                        ? `Crédits restants : ${data.credits_remaining}.`
+                        : '';
+                } catch {
+                    proofStatus.textContent = 'Connexion interrompue. Réessayez.';
+                } finally {
+                    button.disabled = false;
+                }
+            });
+        });
+    }
+
+    const prefer = document.querySelector('[data-prefer-template]');
+
+    if (prefer) {
+        prefer.addEventListener('click', async () => {
+            const statusLine = document.querySelector('[data-prefer-status]');
+            prefer.disabled = true;
+
+            try {
+                const body = new FormData();
+                const selected = form.querySelector('[name="template_id"]');
+
+                if (selected) {
+                    body.set('template_id', selected.value);
+                }
+
+                const response = await fetch(prefer.dataset.preferUrl, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': token,
+                        Accept: 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest',
+                    },
+                    body,
+                });
+                const data = await response.json().catch(() => ({}));
+
+                if (statusLine) {
+                    statusLine.textContent = data.message || (response.ok ? 'Modèle retenu.' : 'Le modèle n\'a pas été retenu.');
+                }
+            } catch {
+                if (statusLine) {
+                    statusLine.textContent = 'Connexion interrompue. Réessayez.';
+                }
+            } finally {
+                prefer.disabled = false;
+            }
+        });
+    }
+
     refreshReadiness();
+    filterSections();
     fitPreview();
     refreshProgress();
 }

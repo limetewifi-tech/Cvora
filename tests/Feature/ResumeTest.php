@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\ResumeTemplate;
 use Tests\CreatesCvoraWorld;
 use Tests\TestCase;
 
@@ -162,5 +163,32 @@ class ResumeTest extends TestCase
             ->assertSee('1')
             ->assertSee('Lettre locale')
             ->assertDontSee('CV d\'une autre personne');
+    }
+
+    public function test_the_create_page_preselects_the_preferred_template(): void
+    {
+        $user = $this->makeUser();
+        $preferences = $user->profile->preferences;
+        $preferences['default_template'] = 'classique';
+        $user->profile->forceFill(['preferences' => $preferences])->save();
+        $classique = ResumeTemplate::query()->where('slug', 'classique')->firstOrFail();
+
+        $this->actingAs($user)->get(route('cvs.create'))
+            ->assertOk()
+            ->assertSee('name="template_id" value="'.$classique->id.'" checked', false);
+    }
+
+    public function test_the_editor_can_remember_the_selected_template(): void
+    {
+        $user = $this->makeUser();
+        $resume = $this->makeResume($user);
+        $classique = ResumeTemplate::query()->where('slug', 'classique')->firstOrFail();
+
+        $this->actingAs($user)->postJson(route('cvs.prefer-template', $resume), [
+            'template_id' => $classique->id,
+        ])->assertOk()
+            ->assertJsonPath('successful', true);
+
+        $this->assertSame('classique', $user->profile->fresh()->preference('default_template'));
     }
 }

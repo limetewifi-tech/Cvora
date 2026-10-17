@@ -24,7 +24,7 @@ return [
     'ai' => [
         'driver' => env('AI_DRIVER', 'anthropic'),
         'fallback' => env('AI_FALLBACK_DRIVER'),
-        'timeout' => (int) env('AI_TIMEOUT', 25),
+        'timeout' => (int) env('AI_TIMEOUT', 45),
         'providers' => [
             'anthropic' => [
                 'api_key' => env('ANTHROPIC_API_KEY'),

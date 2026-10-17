@@ -17,8 +17,11 @@
         <section class="card mt-3">
             <div class="card-body">
                 <h2 class="h5">Proposition</h2>
-                @if (! session('proposal.successful'))<p>{{ session('proposal.error') }}</p>@endif
-                <pre class="mb-0">{{ json_encode(session('proposal.data'), JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE) }}</pre>
+                @if (! session('proposal.successful'))
+                    <p class="mb-0">{{ session('proposal.error') }}</p>
+                @elseif (filled(session('proposal.data')))
+                    <pre class="mb-0">{{ json_encode(session('proposal.data'), JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE) }}</pre>
+                @endif
                 @foreach (session('proposal.missing') ?? [] as $missing)<p class="text-warning-emphasis mb-0">Information manquante : {{ $missing }}</p>@endforeach
                 @foreach (session('proposal.warnings') ?? [] as $warning)<p class="mb-0">{{ $warning }}</p>@endforeach
             </div>

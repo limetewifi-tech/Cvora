@@ -48,6 +48,34 @@
                     @endforelse
                 </fieldset>
             @endforeach
+            <fieldset>
+                <legend class="form-label mb-1">Modèle pour ce profil</legend>
+                <p class="small text-secondary">{{ $suggestion['reason'] }}</p>
+                @php
+                    $selectedTemplate = old('template_id')
+                        ? $templates->firstWhere('id', (int) old('template_id'))
+                        : $templates->firstWhere('slug', $suggestion['slug']);
+                @endphp
+                <div class="vstack gap-2">
+                    @foreach ($templates as $template)
+                        @php $allowed = ! $template->is_premium || $premiumTemplates; @endphp
+                        <label class="d-flex gap-3 border rounded p-3 {{ $allowed ? '' : 'opacity-75' }}">
+                            <input class="form-check-input mt-1" type="radio" name="template_id" value="{{ $template->id }}" @checked(($selectedTemplate?->id ?? null) == $template->id) @disabled(! $allowed)>
+                            <span>
+                                <span class="fw-semibold">{{ $template->name }}</span>
+                                @if ($template->slug === $suggestion['slug'])
+                                    <span class="badge text-bg-primary ms-1">Proposé</span>
+                                @endif
+                                <span class="d-block small text-secondary">{{ $template->description }}</span>
+                            </span>
+                        </label>
+                    @endforeach
+                </div>
+            </fieldset>
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" name="remember_template" id="remember_template" value="1" @checked(old('remember_template'))>
+                <label class="form-check-label" for="remember_template">Retenir ce modèle pour les prochains CV.</label>
+            </div>
             <div class="form-check">
                 <input class="form-check-input" type="checkbox" name="confirmed" id="confirmed" value="1" required>
                 <label class="form-check-label" for="confirmed">Je confirme ou je corrige ces informations avant l'enregistrement.</label>

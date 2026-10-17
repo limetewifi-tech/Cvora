@@ -6,7 +6,8 @@
     <style>
         @page { size: A4 portrait; margin: 14mm 12mm; }
         * { box-sizing: border-box; }
-        body { margin: 0; color: #111827; font-family: DejaVu Sans, sans-serif; font-size: 10.5pt; line-height: 1.35; overflow-wrap: break-word; }
+        body { margin: 0; color: #111827; font-family: DejaVu Sans, sans-serif; font-size: 10.5pt; line-height: 1.35; overflow-wrap: break-word; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        .mast, .band, .gold, .tag, h2 { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
         h1, h2, h3, p { margin: 0; }
         h1 { font-size: 18pt; line-height: 1.15; }
         h2 { font-size: 11pt; margin: 11pt 0 4pt; page-break-after: avoid; }
@@ -59,7 +60,7 @@
     @if ($screen ?? false)
         @unless ($embedded ?? false)
             <div class="a4-toolbar">
-                <p>Format A4 · 210 × 297 mm · marges 14 mm en haut et en bas, 12 mm sur les côtés.</p>
+                <p>Format A4 · 210 × 297 mm · marges 14 mm en haut et en bas, 12 mm sur les côtés. Laissez les graphiques d'arrière-plan activés pour conserver les couleurs du modèle.</p>
                 <button type="button" data-print-sheet>Imprimer ou enregistrer en PDF</button>
             </div>
         @endunless

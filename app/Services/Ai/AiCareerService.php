@@ -81,6 +81,17 @@ class AiCareerService
         ]);
     }
 
+    public function proofread(User $user, array $context): AiProposal
+    {
+        $instruction = ($context['mode'] ?? '') === 'clarity'
+            ? 'Rends le français plus clair et plus professionnel. Conserve chaque fait, chaque nom, chaque date et chaque chiffre. items reprend uniquement les textes fournis, avec le même target et le même index.'
+            : 'Corrige l\'orthographe et la grammaire. Conserve le sens, les noms, les dates et les chiffres. items reprend uniquement les textes fournis, avec le même target et le même index.';
+
+        return $this->run($user, 'proofread', $context + [
+            'instruction' => $instruction,
+        ]);
+    }
+
     public function coach(User $user, array $context): AiProposal
     {
         return $this->run($user, 'coach', $context + [

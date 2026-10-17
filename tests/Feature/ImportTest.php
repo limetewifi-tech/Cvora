@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\ResumeImport;
+use App\Models\ResumeTemplate;
 use Illuminate\Http\UploadedFile;
 use PhpOffice\PhpWord\IOFactory;
 use PhpOffice\PhpWord\PhpWord;
@@ -35,7 +36,8 @@ class ImportTest extends TestCase
 
         $this->get(route('imports.show', $import))
             ->assertOk()
-            ->assertSee('Amina');
+            ->assertSee('Amina')
+            ->assertSee('pas une copie visuelle');
 
         $this->post(route('imports.confirm', $import), [
             'confirmed' => '1',
@@ -113,6 +115,32 @@ class ImportTest extends TestCase
             ->assertSessionHasErrors('file');
 
         $this->assertSame(0, ResumeImport::query()->count());
+    }
+
+    public function test_a_confirmed_import_uses_the_chosen_template(): void
+    {
+        $user = $this->makeUser();
+        $file = $this->docx($this->sampleText());
+        $classique = ResumeTemplate::query()->where('slug', 'classique')->firstOrFail();
+
+        $this->actingAs($user)->post(route('imports.store'), ['file' => $file])->assertRedirect();
+        $import = ResumeImport::query()->firstOrFail();
+
+        $this->post(route('imports.confirm', $import), [
+            'confirmed' => '1',
+            'title' => 'CV importé',
+            'summary' => 'Analyste à Kinshasa.',
+            'template_id' => $classique->id,
+            'remember_template' => '1',
+            'personal' => [
+                'first_name' => 'Amina',
+                'last_name' => 'Kabila',
+            ],
+        ])->assertRedirect();
+
+        $resume = $user->resumes()->first();
+        $this->assertSame($classique->id, $resume->template_id);
+        $this->assertSame('classique', $user->profile->fresh()->preference('default_template'));
     }
 
     private function sampleText(): string

@@ -91,15 +91,7 @@ class ResumeWriter
     public function createFromConfirmed(User $user, array $input): Resume
     {
         $this->quota->assertCanCreateResume($user);
-        ResumeTemplateCatalog::installMissing();
-        $template = ResumeTemplate::query()->active()->where('is_premium', false)->orderBy('sort_order')->first()
-            ?? ResumeTemplate::query()->active()->orderBy('sort_order')->first();
-
-        if (! $template) {
-            throw new PlanLimitException('Aucun modèle n\'est disponible.');
-        }
-
-        $this->guardTemplate($user, $template);
+        $template = $this->templateForImport($user, $input);
 
         return $user->resumes()->create([
             'template_id' => $template->id,
@@ -118,12 +110,17 @@ class ResumeWriter
     {
         $this->snapshot($resume, 'safety', 'Avant importation confirmée');
 
-        return $this->update($resume, array_merge($input, [
+        $payload = array_merge($input, [
             'lock_version' => $resume->fresh()->lock_version,
-            'template_id' => $resume->template_id,
             'sections_present' => ResumeContent::sections(),
             'title' => $input['title'] ?? $resume->title,
-        ]));
+        ]);
+
+        if (! filled($payload['template_id'] ?? null)) {
+            $payload['template_id'] = $resume->template_id;
+        }
+
+        return $this->update($resume, $payload);
     }
 
     public function duplicate(Resume $resume): Resume
@@ -243,6 +240,27 @@ class ResumeWriter
         if (! array_key_exists('lock_version', $input) || (int) $input['lock_version'] !== (int) $resume->lock_version) {
             throw new PlanLimitException('Ce CV a été modifié entre-temps. Rechargez la page avant d\'enregistrer.');
         }
+    }
+
+    private function templateForImport(User $user, array $input): ResumeTemplate
+    {
+        ResumeTemplateCatalog::installMissing();
+        $template = null;
+
+        if (filled($input['template_id'] ?? null)) {
+            $template = ResumeTemplate::query()->where('is_active', true)->find($input['template_id']);
+        }
+
+        $template ??= ResumeTemplate::query()->active()->where('is_premium', false)->orderBy('sort_order')->first()
+            ?? ResumeTemplate::query()->active()->orderBy('sort_order')->first();
+
+        if (! $template) {
+            throw new PlanLimitException('Aucun modèle n\'est disponible.');
+        }
+
+        $this->guardTemplate($user, $template);
+
+        return $template;
     }
 
     private function templateFromInput(User $user, array $input, Resume $resume): ResumeTemplate
