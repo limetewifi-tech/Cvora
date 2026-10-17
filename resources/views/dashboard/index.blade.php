@@ -1,65 +1,81 @@
 @extends('layouts.app')
 @section('document-title', 'Vue d\'ensemble')
 @section('content')
-    <h1 class="text-3xl font-semibold">Bonjour {{ auth()->user()->profile?->first_name ?: auth()->user()->name }}</h1>
-    <p class="mt-2 text-slate-600">Vos chiffres proviennent uniquement de votre compte.</p>
-    <div class="mt-6 grid gap-4 sm:grid-cols-3">
-        <article class="card p-5"><p class="text-sm text-slate-500">CV enregistrés</p><p class="mt-2 text-3xl font-semibold">{{ $resumeCount }}</p></article>
-        <article class="card p-5"><p class="text-sm text-slate-500">Lettres enregistrées</p><p class="mt-2 text-3xl font-semibold">{{ $letterCount }}</p></article>
-        <article class="card p-5"><p class="text-sm text-slate-500">Candidatures</p><p class="mt-2 text-3xl font-semibold">{{ $applicationCount }}</p></article>
+    <h1 class="h2">Bonjour {{ auth()->user()->profile?->first_name ?: auth()->user()->name }}</h1>
+    <p class="text-secondary">Vos chiffres proviennent uniquement de votre compte.</p>
+    <div class="row g-3 mt-1">
+        <div class="col-sm-4"><article class="card h-100"><div class="card-body"><p class="small text-secondary mb-1">CV enregistrés</p><p class="display-6 fw-semibold mb-0">{{ $resumeCount }}</p></div></article></div>
+        <div class="col-sm-4"><article class="card h-100"><div class="card-body"><p class="small text-secondary mb-1">Lettres enregistrées</p><p class="display-6 fw-semibold mb-0">{{ $letterCount }}</p></div></article></div>
+        <div class="col-sm-4"><article class="card h-100"><div class="card-body"><p class="small text-secondary mb-1">Candidatures</p><p class="display-6 fw-semibold mb-0">{{ $applicationCount }}</p></div></article></div>
     </div>
-    <div class="mt-6 grid gap-4 lg:grid-cols-[1.4fr_.8fr]">
-        <section class="card p-5">
-            <h2 class="text-lg font-semibold">Derniers documents</h2>
-            <ul class="mt-4 divide-y divide-slate-100">
-                @forelse ($recent as $item)
-                    <li class="flex items-center justify-between gap-3 py-3">
-                        <div><p class="text-xs uppercase tracking-wide text-slate-500">{{ $item['type'] }}</p><a class="font-medium text-brand-700" href="{{ $item['url'] }}">{{ $item['title'] }}</a></div>
-                        <time class="text-xs text-slate-500">{{ $item['updated_at']?->timezone(config('app.timezone'))->format('d/m/Y H:i') }}</time>
-                    </li>
-                @empty
-                    <li class="py-3 text-sm text-slate-600">Aucun document pour le moment.</li>
-                @endforelse
-            </ul>
+    <div class="row g-3 mt-1">
+        <section class="col-lg-8">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h2 class="h5">Derniers documents</h2>
+                    <ul class="list-unstyled mb-0 mt-3">
+                        @forelse ($recent as $item)
+                            <li class="d-flex justify-content-between gap-3 py-3 border-bottom">
+                                <div>
+                                    <p class="small text-uppercase text-secondary mb-1">{{ $item['type'] }}</p>
+                                    <a class="fw-semibold" href="{{ $item['url'] }}">{{ $item['title'] }}</a>
+                                </div>
+                                <time class="small text-secondary">{{ $item['updated_at']?->timezone(config('app.timezone'))->format('d/m/Y H:i') }}</time>
+                            </li>
+                        @empty
+                            <li>@include('components.empty', ['icon' => 'bi-file-earmark', 'title' => 'Aucun document pour le moment.', 'action' => 'Créer un CV', 'href' => route('cvs.create')])</li>
+                        @endforelse
+                    </ul>
+                </div>
+            </div>
         </section>
-        <aside class="space-y-4">
-            <section class="card p-5">
-                <h2 class="text-lg font-semibold">Offre actuelle</h2>
-                <p class="mt-2 font-medium">{{ $subscription?->plan?->name ?? 'Aucune offre' }}</p>
-                <p class="text-sm text-slate-600">{{ $credits }} crédits IA disponibles</p>
-                <a class="btn btn-secondary mt-4" href="{{ route('billing.index') }}">Voir la facturation</a>
+        <aside class="col-lg-4 vstack gap-3">
+            <section class="card">
+                <div class="card-body">
+                    <h2 class="h5">Offre actuelle</h2>
+                    <p class="fw-semibold mb-1">{{ $subscription?->plan?->name ?? 'Aucune offre' }}</p>
+                    <p class="small text-secondary">{{ $credits }} crédits IA disponibles</p>
+                    <a class="btn btn-outline-primary" href="{{ route('billing.index') }}">Voir la facturation</a>
+                </div>
             </section>
-            <section class="card p-5">
-                <h2 class="text-lg font-semibold">Profil {{ $completion['percent'] }} %</h2>
-                <ul class="mt-3 space-y-1 text-sm">
-                    @foreach ($completion['checks'] as $label => $done)
-                        <li>{{ $done ? '✓' : '○' }} {{ $label }}</li>
-                    @endforeach
-                </ul>
-                <a class="mt-3 inline-block text-sm font-semibold text-brand-700" href="{{ route('profile.edit') }}">Compléter le profil</a>
+            <section class="card">
+                <div class="card-body">
+                    <h2 class="h5">Profil {{ $completion['percent'] }} %</h2>
+                    <div class="progress mb-3" role="progressbar" aria-valuenow="{{ $completion['percent'] }}" aria-valuemin="0" aria-valuemax="100">
+                        <div class="progress-bar" style="width: {{ $completion['percent'] }}%"></div>
+                    </div>
+                    <ul class="list-unstyled small mb-3">
+                        @foreach ($completion['checks'] as $label => $done)
+                            <li class="mb-1"><i class="bi {{ $done ? 'bi-check-circle-fill text-success' : 'bi-circle text-secondary' }} me-1" aria-hidden="true"></i>{{ $label }}</li>
+                        @endforeach
+                    </ul>
+                    <a class="fw-semibold" href="{{ route('profile.edit') }}">Compléter le profil</a>
+                </div>
             </section>
         </aside>
     </div>
-    <section class="mt-6">
-        <h2 class="text-lg font-semibold">Actions rapides</h2>
-        <div class="mt-3 flex flex-wrap gap-2">
+    <section class="mt-4">
+        <h2 class="h5">Actions rapides</h2>
+        <div class="d-flex flex-wrap gap-2 mt-3">
             <a class="btn btn-primary" href="{{ route('cvs.create') }}">Créer un CV</a>
-            <a class="btn btn-secondary" href="{{ route('imports.create') }}">Importer</a>
-            <a class="btn btn-secondary" href="{{ route('letters.create') }}">Nouvelle lettre</a>
-            <a class="btn btn-secondary" href="{{ route('assistant.index') }}">Assistant IA</a>
+            <a class="btn btn-outline-primary" href="{{ route('imports.create') }}">Importer</a>
+            <a class="btn btn-outline-primary" href="{{ route('letters.create') }}">Nouvelle lettre</a>
+            <a class="btn btn-outline-primary" href="{{ route('assistant.index') }}">Assistant IA</a>
         </div>
     </section>
     @if ($notifications->isNotEmpty())
-        <section class="card mt-6 p-5">
-            <h2 class="text-lg font-semibold">Notifications</h2>
-            <ul class="mt-3 space-y-2 text-sm">
-                @foreach ($notifications as $notification)
-                    <li class="flex items-center justify-between gap-3">
-                        <span>{{ $notification->data['body'] ?? 'Notification' }}</span>
-                        <form method="POST" action="{{ route('notifications.read', $notification->id) }}">@csrf<button class="text-brand-700" type="submit">Marquer comme lue</button></form>
-                    </li>
-                @endforeach
-            </ul>
+        <section class="card mt-4">
+            <div class="card-body">
+                <h2 class="h5">Notifications</h2>
+                <ul class="list-unstyled mb-0">
+                    @foreach ($notifications as $notification)
+                        <li class="d-flex flex-wrap justify-content-between align-items-center gap-2 py-2">
+                            <span>{{ $notification->data['body'] ?? 'Notification' }}</span>
+                            <form method="POST" action="{{ route('notifications.read', $notification->id) }}">@csrf<button class="btn btn-sm btn-outline-primary" type="submit">Marquer comme lue</button></form>
+                        </li>
+                    @endforeach
+                </ul>
+            </div>
         </section>
     @endif
 @endsection

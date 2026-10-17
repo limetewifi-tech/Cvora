@@ -24,6 +24,8 @@ php artisan migrate --seed
 npm install
 npm run build
 php artisan serve
+
+L'interface utilise Bootstrap 5.3, Bootstrap Icons et un JavaScript compilé par Vite (`resources/css/app.css`, `resources/js/app.js`). Un seul bundle Bootstrap est chargé. Le mode clair ou sombre est mémorisé dans le navigateur sous la clé `cvora-theme`.
 ```
 
 Pour créer les comptes locaux de démonstration :
@@ -62,6 +64,7 @@ Le service central est `App\Services\Ai\AiCareerService`. Les prompts sont dans 
 
 - Sans clé, l'assistant répond qu'il n'est pas configuré. Aucun texte n'est inventé à la place.
 - Avec une clé, le driver `openai` appelle une API compatible `/chat/completions` (`AI_BASE_URL`, `AI_MODEL`, `AI_TIMEOUT`).
+- Le driver `anthropic` appelle l'API Messages (`POST /v1/messages`, en-tête `x-api-key`). Si l'URL ou le modèle restent ceux d'OpenAI, le pilote utilise `https://api.anthropic.com` et `claude-sonnet-4-5`.
 - `AI_DRIVER=fake` ne sert qu'aux tests. Il est refusé si `APP_ENV=production`.
 - Chaque appel réserve un crédit. Le crédit est rendu si l'appel échoue. Une proposition n'est enregistrée qu'après confirmation de la personne.
 - Les textes importés et les offres d'emploi sont transmis comme des données, pas comme des instructions.

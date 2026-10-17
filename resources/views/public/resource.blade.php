@@ -1,12 +1,12 @@
 @extends('layouts.public')
 @section('document-title', $guide['title'].' — CVora')
 @section('content')
-    <article class="mx-auto max-w-3xl px-4 py-14">
-        <a href="{{ route('resources') }}" class="text-sm font-semibold text-brand-700">Ressources</a>
-        <h1 class="mt-3 text-4xl font-semibold">{{ $guide['title'] }}</h1>
-        <div class="mt-6 space-y-4 text-slate-700">
+    <article class="container cvora-prose py-5">
+        <a href="{{ route('resources') }}" class="fw-semibold"><i class="bi bi-arrow-left me-1" aria-hidden="true"></i>Ressources</a>
+        <h1 class="display-5 fw-semibold mt-3">{{ $guide['title'] }}</h1>
+        <div class="vstack gap-3 mt-4">
             @foreach ($guide['body'] as $paragraph)
-                <p>{{ $paragraph }}</p>
+                <p class="mb-0">{{ $paragraph }}</p>
             @endforeach
         </div>
     </article>

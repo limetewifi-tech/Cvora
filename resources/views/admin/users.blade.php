@@ -1,18 +1,42 @@
 @extends('layouts.admin')
 @section('document-title', 'Comptes')
 @section('content')
-    <h1 class="text-3xl font-semibold">Comptes</h1>
-    <div class="mt-6 space-y-3">
+    <h1 class="h2">Comptes</h1>
+    <div class="vstack gap-3 mt-3">
         @foreach ($users as $user)
-            <form method="POST" action="{{ route('admin.users.update', $user) }}" class="card grid gap-3 p-4 md:grid-cols-5">
+            <form method="POST" action="{{ route('admin.users.update', $user) }}" class="card">
                 @csrf @method('PUT')
-                <div><p class="font-semibold">{{ $user->name }}</p><p class="text-xs text-slate-500">{{ $user->email }}</p><p class="text-xs">{{ $user->subscription?->plan?->name }}</p></div>
-                <select class="field" name="role"><option value="user" @selected($user->role->value === 'user')>Utilisateur</option><option value="admin" @selected($user->role->value === 'admin')>Administrateur</option></select>
-                <label class="text-sm"><input type="checkbox" name="is_active" value="1" @checked($user->is_active)> Actif</label>
-                <label class="text-sm"><input type="checkbox" name="anonymize" value="1"> Anonymiser</label>
-                <button class="btn btn-secondary" type="submit">Enregistrer</button>
+                <div class="card-body">
+                    <div class="row g-3 align-items-center">
+                        <div class="col-md-4">
+                            <p class="fw-semibold mb-1">{{ $user->name }}</p>
+                            <p class="small text-secondary mb-1">{{ $user->email }}</p>
+                            <p class="small mb-0">{{ $user->subscription?->plan?->name }}</p>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label" for="role-{{ $user->id }}">Rôle</label>
+                            <select class="form-select" id="role-{{ $user->id }}" name="role">
+                                <option value="user" @selected($user->role->value === 'user')>Utilisateur</option>
+                                <option value="admin" @selected($user->role->value === 'admin')>Administrateur</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="form-check mt-md-4">
+                                <input class="form-check-input" type="checkbox" name="is_active" id="active-{{ $user->id }}" value="1" @checked($user->is_active)>
+                                <label class="form-check-label" for="active-{{ $user->id }}">Actif</label>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="form-check mt-md-4">
+                                <input class="form-check-input" type="checkbox" name="anonymize" id="anonymize-{{ $user->id }}" value="1">
+                                <label class="form-check-label" for="anonymize-{{ $user->id }}">Anonymiser</label>
+                            </div>
+                        </div>
+                        <div class="col-md-2"><button class="btn btn-outline-primary w-100" type="submit">Enregistrer</button></div>
+                    </div>
+                </div>
             </form>
         @endforeach
     </div>
-    <div class="mt-4">{{ $users->links() }}</div>
+    <div class="mt-3">{{ $users->links() }}</div>
 @endsection

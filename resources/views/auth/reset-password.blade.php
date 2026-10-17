@@ -1,13 +1,25 @@
 @extends('layouts.auth')
 @section('document-title', 'Nouveau mot de passe')
 @section('content')
-    <h1 class="text-2xl font-semibold">Nouveau mot de passe</h1>
-    <form method="POST" action="{{ route('password.update') }}" class="mt-6 space-y-4">
+    <h1 class="h3">Nouveau mot de passe</h1>
+    <form method="POST" action="{{ route('password.update') }}" class="vstack gap-3 mt-4 needs-validation" novalidate>
         @csrf
         <input type="hidden" name="token" value="{{ $token }}">
-        <div><label class="label" for="email">E-mail</label><input class="field" id="email" type="email" name="email" value="{{ old('email', $email) }}" required></div>
-        <div><label class="label" for="password">Mot de passe</label><input class="field" id="password" type="password" name="password" required></div>
-        <div><label class="label" for="password_confirmation">Confirmation</label><input class="field" id="password_confirmation" type="password" name="password_confirmation" required></div>
-        <button class="btn btn-primary w-full" type="submit">Enregistrer</button>
+        <div>
+            <label class="form-label" for="email">E-mail</label>
+            <input class="form-control" id="email" type="email" name="email" value="{{ old('email', $email) }}" required autocomplete="email">
+            <div class="invalid-feedback">Indiquez une adresse e-mail valide.</div>
+        </div>
+        <div>
+            <label class="form-label" for="password">Mot de passe</label>
+            <input class="form-control" id="password" type="password" name="password" required autocomplete="new-password">
+            <div class="invalid-feedback">Choisissez un mot de passe.</div>
+        </div>
+        <div>
+            <label class="form-label" for="password_confirmation">Confirmation</label>
+            <input class="form-control" id="password_confirmation" type="password" name="password_confirmation" required autocomplete="new-password">
+            <div class="invalid-feedback">Confirmez le mot de passe.</div>
+        </div>
+        <button class="btn btn-primary" type="submit" data-loading>Enregistrer</button>
     </form>
 @endsection

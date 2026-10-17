@@ -1,16 +1,19 @@
 @if (session('success') || session('status') || session('error'))
-    <div class="mb-4 space-y-2" role="status">
-        @foreach (['success' => 'border-emerald-200 bg-emerald-50 text-emerald-800', 'status' => 'border-blue-200 bg-blue-50 text-blue-800', 'error' => 'border-amber-200 bg-amber-50 text-amber-900'] as $key => $classes)
+    <div class="mb-3">
+        @foreach (['success' => 'success', 'status' => 'primary', 'error' => 'warning'] as $key => $tone)
             @if (session($key))
-                <p class="rounded-2xl border px-4 py-3 text-sm {{ $classes }}">{{ session($key) }}</p>
+                <div class="alert alert-{{ $tone }} alert-dismissible fade show" role="status" data-autohide>
+                    {{ session($key) }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fermer"></button>
+                </div>
             @endif
         @endforeach
     </div>
 @endif
 @if ($errors->any())
-    <div class="mb-4 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800" role="alert">
-        <p class="font-semibold">Certaines informations doivent être corrigées.</p>
-        <ul class="mt-1 list-disc pl-5">
+    <div class="alert alert-danger" role="alert">
+        <p class="fw-semibold mb-1">Certaines informations doivent être corrigées.</p>
+        <ul class="mb-0 ps-3">
             @foreach ($errors->all() as $error)
                 <li>{{ $error }}</li>
             @endforeach

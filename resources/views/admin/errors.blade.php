@@ -1,11 +1,19 @@
 @extends('layouts.admin')
 @section('document-title', 'Journaux')
 @section('content')
-    <h1 class="text-3xl font-semibold">Journaux techniques</h1>
-    <ul class="mt-6 space-y-2 text-sm">
-        @foreach ($logs as $error)
-            <li class="card p-4"><p class="font-semibold">{{ $error->exception }}</p><p>{{ $error->message }}</p><p class="text-xs text-slate-500">{{ $error->file }}:{{ $error->line }} · {{ $error->url }} · {{ $error->created_at }}</p></li>
-        @endforeach
+    <h1 class="h2">Journaux techniques</h1>
+    <ul class="list-unstyled vstack gap-2 mt-3">
+        @forelse ($logs as $error)
+            <li class="card">
+                <div class="card-body">
+                    <p class="fw-semibold mb-1">{{ $error->exception }}</p>
+                    <p class="mb-1">{{ $error->message }}</p>
+                    <p class="small text-secondary mb-0">{{ $error->file }}:{{ $error->line }} · {{ $error->url }} · {{ $error->created_at }}</p>
+                </div>
+            </li>
+        @empty
+            <li class="text-secondary">Aucun journal technique.</li>
+        @endforelse
     </ul>
-    <div class="mt-4">{{ $logs->links() }}</div>
+    <div class="mt-3">{{ $logs->links() }}</div>
 @endsection

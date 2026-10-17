@@ -1,31 +1,35 @@
 @extends('layouts.app')
 @section('document-title', 'Versions')
 @section('content')
-    <h1 class="text-3xl font-semibold">Versions de « {{ $resume->title }} »</h1>
+    <h1 class="h2">Versions de « {{ $resume->title }} »</h1>
     @unless ($historyEnabled)
-        <p class="mt-3 rounded-2xl bg-brand-50 px-4 py-3 text-sm text-brand-700">Les versions de secours restent disponibles. L'historique manuel complet est inclus dans l'offre Pro.</p>
+        <div class="alert alert-primary mt-3">Les versions de secours restent disponibles. L'historique manuel complet est inclus dans l'offre Pro.</div>
     @endunless
     @if ($historyEnabled)
-        <form method="POST" action="{{ route('cvs.versions.store', $resume) }}" class="card mt-4 flex flex-col gap-3 p-4 sm:flex-row">
+        <form method="POST" action="{{ route('cvs.versions.store', $resume) }}" class="card mt-3">
             @csrf
-            <label class="sr-only" for="note">Note</label>
-            <input class="field" id="note" name="note" placeholder="Note de version">
-            <button class="btn btn-primary" type="submit">Enregistrer une version</button>
+            <div class="card-body d-flex flex-column flex-sm-row gap-3">
+                <label class="visually-hidden" for="note">Note</label>
+                <input class="form-control" id="note" name="note" placeholder="Note de version">
+                <button class="btn btn-primary" type="submit" data-loading>Enregistrer une version</button>
+            </div>
         </form>
     @endif
-    <ul class="mt-6 space-y-3">
+    <ul class="list-unstyled vstack gap-3 mt-4">
         @forelse ($versions as $version)
             @if ($historyEnabled || $version->kind === 'safety')
-                <li class="card flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
-                    <div>
-                        <p class="font-medium">Version {{ $version->version_number }} · {{ $version->kind === 'safety' ? 'secours' : 'manuelle' }}</p>
-                        <p class="text-sm text-slate-600">{{ $version->note }} · {{ $version->created_at?->timezone(config('app.timezone'))->format('d/m/Y H:i') }}</p>
+                <li class="card">
+                    <div class="card-body d-flex flex-column flex-sm-row align-items-sm-center justify-content-between gap-3">
+                        <div>
+                            <p class="fw-semibold mb-1">Version {{ $version->version_number }} · {{ $version->kind === 'safety' ? 'secours' : 'manuelle' }}</p>
+                            <p class="small text-secondary mb-0">{{ $version->note }} · {{ $version->created_at?->timezone(config('app.timezone'))->format('d/m/Y H:i') }}</p>
+                        </div>
+                        <form method="POST" action="{{ route('cvs.versions.restore', [$resume, $version]) }}">@csrf<button class="btn btn-outline-primary" type="submit">Restaurer</button></form>
                     </div>
-                    <form method="POST" action="{{ route('cvs.versions.restore', [$resume, $version]) }}">@csrf<button class="btn btn-secondary" type="submit">Restaurer</button></form>
                 </li>
             @endif
         @empty
-            <li class="text-sm text-slate-600">Aucune version pour le moment.</li>
+            <li class="text-secondary">Aucune version pour le moment.</li>
         @endforelse
     </ul>
 @endsection

@@ -3,16 +3,56 @@ const form = document.querySelector('[data-autosave]');
 if (form) {
     const status = document.querySelector('[data-save-status]');
     const preview = document.querySelector('[data-preview]');
+    const progress = document.querySelector('[data-editor-progress]');
+    const progressBar = progress?.querySelector('.progress-bar');
+    const progressLabel = document.querySelector('[data-editor-progress-label]');
     const token = document.querySelector('meta[name="csrf-token"]')?.content;
     let timer = null;
     let controller = null;
     let generation = 0;
+
+    const refreshProgress = () => {
+        const buttons = [...document.querySelectorAll('[data-step]')];
+
+        if (!buttons.length || !progress || !progressBar) {
+            return;
+        }
+
+        let done = 0;
+
+        buttons.forEach((button) => {
+            const section = document.getElementById(button.dataset.step);
+            const filled = [...(section?.querySelectorAll('input, textarea, select') ?? [])].some((field) => {
+                if (field.type === 'hidden' || field.type === 'checkbox' || field.type === 'radio') {
+                    return false;
+                }
+
+                return field.value.trim() !== '';
+            });
+
+            button.classList.toggle('is-done', filled);
+
+            if (filled) {
+                done += 1;
+            }
+        });
+
+        const value = Math.round((done / buttons.length) * 100);
+        progressBar.style.width = `${value}%`;
+        progress.setAttribute('aria-valuenow', String(done));
+        progress.setAttribute('aria-valuemax', String(buttons.length));
+
+        if (progressLabel) {
+            progressLabel.textContent = `${done} étape${done > 1 ? 's' : ''} renseignée${done > 1 ? 's' : ''} sur ${buttons.length}`;
+        }
+    };
 
     const schedule = () => {
         if (status) {
             status.textContent = 'Modifications en attente…';
         }
 
+        refreshProgress();
         clearTimeout(timer);
         timer = setTimeout(save, 800);
     };
@@ -99,6 +139,9 @@ if (form) {
             target?.scrollIntoView({ behavior: 'smooth', block: 'start' });
             document.querySelectorAll('[data-step]').forEach((item) => item.removeAttribute('aria-current'));
             button.setAttribute('aria-current', 'step');
+            refreshProgress();
         });
     });
+
+    refreshProgress();
 }

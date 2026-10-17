@@ -1,9 +1,9 @@
 @extends('layouts.public')
 @section('document-title', 'Fonctionnalités — CVora')
 @section('content')
-    <div class="mx-auto max-w-4xl px-4 py-14">
-        <h1 class="text-4xl font-semibold">Fonctionnalités</h1>
-        <div class="mt-8 space-y-4">
+    <div class="container cvora-wide py-5">
+        <h1 class="display-5 fw-semibold">Fonctionnalités</h1>
+        <div class="vstack gap-3 mt-4">
             @foreach ([
                 'Éditeur de CV en dix étapes, avec ajout, suppression et réordonnancement des éléments.',
                 'Huit mises en page distinctes, de l\'étudiant au profil technique ou administratif.',
@@ -12,7 +12,7 @@
                 'Assistant IA centralisé, propositions affichées avant application.',
                 'Offres, quotas et paiement extensible, avec bac à sable séparé d\'UniPay.',
             ] as $item)
-                <p class="card p-5 text-slate-700">{{ $item }}</p>
+                <p class="card mb-0"><span class="card-body">{{ $item }}</span></p>
             @endforeach
         </div>
     </div>

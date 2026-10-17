@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Services\Ai\AiProvider;
+use App\Services\Ai\AnthropicProvider;
 use App\Services\Ai\FakeAiProvider;
 use App\Services\Ai\OpenAiCompatibleProvider;
 use App\Services\Ai\UnconfiguredAiProvider;
@@ -16,6 +17,7 @@ use App\Services\Resume\OcrExtractor;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
+use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
@@ -31,6 +33,9 @@ class AppServiceProvider extends ServiceProvider
 
             return match (config('cvora.ai.driver')) {
                 'fake' => new FakeAiProvider,
+                'anthropic' => filled(config('cvora.ai.api_key'))
+                    ? $app->make(AnthropicProvider::class)
+                    : new UnconfiguredAiProvider,
                 default => filled(config('cvora.ai.api_key'))
                     ? $app->make(OpenAiCompatibleProvider::class)
                     : new UnconfiguredAiProvider,
@@ -51,6 +56,7 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         \Carbon\Carbon::setLocale(config('app.locale'));
+        Paginator::useBootstrapFive();
 
         Password::defaults(fn () => Password::min(8)->mixedCase()->numbers());
 

@@ -1,12 +1,18 @@
 @extends('layouts.app')
 @section('document-title', 'Supprimer le CV')
 @section('content')
-    <h1 class="text-3xl font-semibold">Supprimer « {{ $resume->title }} »</h1>
-    <p class="mt-2 text-slate-600">Cette action retire le CV et son historique. Elle est définitive.</p>
-    <form method="POST" action="{{ route('cvs.destroy', $resume) }}" class="card mt-6 max-w-lg space-y-4 p-6">
+    <h1 class="h2">Supprimer « {{ $resume->title }} »</h1>
+    <p class="text-secondary">Cette action retire le CV et son historique. Elle est définitive.</p>
+    <form method="POST" action="{{ route('cvs.destroy', $resume) }}" class="card cvora-narrow mt-4 needs-validation" novalidate>
         @csrf
         @method('DELETE')
-        <label class="flex items-start gap-2 text-sm"><input type="checkbox" name="confirm" value="1" required> Je confirme la suppression.</label>
-        <button class="btn btn-primary" type="submit">Supprimer le CV</button>
+        <div class="card-body vstack gap-3">
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" name="confirm" id="confirm" value="1" required>
+                <label class="form-check-label" for="confirm">Je confirme la suppression.</label>
+                <div class="invalid-feedback">Cochez la confirmation pour supprimer le CV.</div>
+            </div>
+            <button class="btn btn-danger" type="submit" data-loading>Supprimer le CV</button>
+        </div>
     </form>
 @endsection
