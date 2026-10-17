@@ -3,15 +3,12 @@
 namespace App\Providers;
 
 use App\Services\Ai\AiProvider;
-use App\Services\Ai\AnthropicProvider;
-use App\Services\Ai\FakeAiProvider;
-use App\Services\Ai\OpenAiCompatibleProvider;
-use App\Services\Ai\UnconfiguredAiProvider;
+use App\Services\Ai\AiRouter;
 use App\Services\Auth\PhoneAuthenticator;
 use App\Services\Auth\UnconfiguredPhoneAuthenticator;
+use App\Services\Billing\IkeepayGateway;
 use App\Services\Billing\PaymentGateway;
 use App\Services\Billing\SandboxGateway;
-use App\Services\Billing\UniPayGateway;
 use App\Services\Resume\NullOcrExtractor;
 use App\Services\Resume\OcrExtractor;
 use Illuminate\Cache\RateLimiting\Limit;
@@ -27,24 +24,18 @@ class AppServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->singleton(AiProvider::class, function ($app) {
-            if ($app->environment('production') && config('cvora.ai.driver') === 'fake') {
+            $router = $app->make(AiRouter::class);
+
+            if ($app->environment('production') && $router->driverName() === 'fake') {
                 throw new \RuntimeException('AI_DRIVER=fake est interdit en production.');
             }
 
-            return match (config('cvora.ai.driver')) {
-                'fake' => new FakeAiProvider,
-                'anthropic' => filled(config('cvora.ai.api_key'))
-                    ? $app->make(AnthropicProvider::class)
-                    : new UnconfiguredAiProvider,
-                default => filled(config('cvora.ai.api_key'))
-                    ? $app->make(OpenAiCompatibleProvider::class)
-                    : new UnconfiguredAiProvider,
-            };
+            return $router;
         });
 
-        $this->app->singleton(PaymentGateway::class, function () {
+        $this->app->singleton(PaymentGateway::class, function ($app) {
             return match (config('cvora.payments.driver')) {
-                'unipay' => new UniPayGateway,
+                'ikeepay' => $app->make(IkeepayGateway::class),
                 default => new SandboxGateway,
             };
         });

@@ -10,7 +10,7 @@ class PaymentWebhookController extends Controller
 {
     public function store(Request $request, string $provider, PaymentService $payments)
     {
-        abort_unless(in_array($provider, ['sandbox', 'unipay'], true), 404);
+        abort_unless(in_array($provider, ['sandbox', 'ikeepay'], true), 404);
 
         try {
             $transaction = $payments->handleWebhook(

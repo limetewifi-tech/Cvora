@@ -4,6 +4,8 @@ namespace App\Services\Ai;
 
 interface AiProvider
 {
+    public function name(): string;
+
     public function configured(): bool;
 
     /**

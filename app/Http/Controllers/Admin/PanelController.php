@@ -13,10 +13,12 @@ use App\Models\Subscription;
 use App\Models\Transaction;
 use App\Models\User;
 use App\Services\Account\AccountDeleter;
+use App\Services\Ai\AiStatus;
 use App\Services\SettingsRepository;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 
 class PanelController extends Controller
 {
@@ -176,31 +178,32 @@ class PanelController extends Controller
         return back()->with('success', 'Abonnement annulé. Le contenu des CV n\'a pas été ouvert.');
     }
 
-    public function ai()
+    public function ai(AiStatus $status)
     {
         return view('admin.ai', [
             'usage' => AiUsageLog::query()->selectRaw('feature, status, count(*) as total')->groupBy('feature', 'status')->orderBy('feature')->get(),
-            'configured' => filled(config('cvora.ai.api_key')),
-            'driver' => config('cvora.ai.driver'),
-            'model' => app(SettingsRepository::class)->get('ai_model', config('cvora.ai.model')),
+            'status' => $status->snapshot(),
         ]);
     }
 
-    public function settings(SettingsRepository $settings)
+    public function settings(SettingsRepository $settings, AiStatus $status)
     {
         return view('admin.settings', [
             'settings' => $settings,
-            'aiConfigured' => filled(config('cvora.ai.api_key')),
             'paymentDriver' => config('cvora.payments.driver'),
-            'unipayConfigured' => filled(config('cvora.payments.unipay.api_key')) && filled(config('cvora.payments.unipay.merchant_id')) && filled(config('cvora.payments.unipay.api_url')),
+            'ikeepayConfigured' => filled(config('cvora.payments.ikeepay.api_key')) && filled(config('cvora.payments.ikeepay.api_url')),
+            'aiStatus' => $status->snapshot(),
         ]);
     }
 
     public function updateSettings(Request $request, SettingsRepository $settings)
     {
         $data = $request->validate([
-            'ai_model' => ['nullable', 'string', 'max:80'],
-            'ai_base_url' => ['nullable', 'url', 'max:180'],
+            'ai_driver' => ['nullable', Rule::in(['anthropic', 'gemini', 'groq'])],
+            'ai_fallback_driver' => ['nullable', Rule::in(['anthropic', 'gemini', 'groq'])],
+            'anthropic_model' => ['nullable', 'regex:/^[A-Za-z0-9._-]{1,80}$/'],
+            'gemini_model' => ['nullable', 'regex:/^[A-Za-z0-9._-]{1,80}$/'],
+            'groq_model' => ['nullable', 'regex:/^[A-Za-z0-9._-]{1,80}$/'],
             'legal_name' => ['nullable', 'string', 'max:160'],
             'legal_address' => ['nullable', 'string', 'max:255'],
             'legal_email' => ['nullable', 'email', 'max:180'],
@@ -208,11 +211,21 @@ class PanelController extends Controller
             'contact_email' => ['nullable', 'email', 'max:180'],
         ]);
 
+        $driver = $data['ai_driver'] ?? '';
+        $fallback = $data['ai_fallback_driver'] ?? '';
+        $effective = $driver !== '' ? $driver : (string) config('cvora.ai.driver');
+
+        if ($fallback !== '' && $fallback === $effective) {
+            throw ValidationException::withMessages([
+                'ai_fallback_driver' => 'Le repli doit désigner un autre fournisseur.',
+            ]);
+        }
+
         foreach (['feature_ai', 'feature_import', 'feature_letters', 'feature_payments', 'feature_exports'] as $flag) {
             $settings->set($flag, $request->boolean($flag) ? '1' : '0', 'features');
         }
 
-        foreach (['ai_model', 'ai_base_url'] as $key) {
+        foreach (['ai_driver', 'ai_fallback_driver', 'anthropic_model', 'gemini_model', 'groq_model'] as $key) {
             $settings->set($key, $data[$key] ?? '', 'ai');
         }
 

@@ -21,6 +21,8 @@ class BillingController extends Controller
             'transactions' => $user->transactions()->latest()->limit(15)->get(),
             'driver' => config('cvora.payments.driver'),
             'sandbox' => config('cvora.payments.driver') === 'sandbox',
+            'ikeepay' => config('cvora.payments.driver') === 'ikeepay',
+            'ikeepayReady' => filled(config('cvora.payments.ikeepay.api_key')) && filled(config('cvora.payments.ikeepay.api_url')),
         ]);
     }
 
@@ -35,7 +37,24 @@ class BillingController extends Controller
                 return redirect()->route('billing.index')->with('success', 'L\'offre gratuite est active. Aucun paiement n\'a été effectué.');
             }
 
-            $checkout = $payments->startCheckout($request->user(), $plan);
+            $details = [];
+
+            if (config('cvora.payments.driver') === 'ikeepay') {
+                $details = $request->validate([
+                    'phone_number' => ['required', 'regex:/^[0-9]{8,15}$/'],
+                    'country' => ['required', 'regex:/^[A-Za-z]{2}$/'],
+                    'operator' => ['required', 'regex:/^[A-Za-z0-9_]{2,20}$/'],
+                ], [
+                    'phone_number.required' => 'Indiquez le numéro Mobile Money.',
+                    'phone_number.regex' => 'Le numéro doit contenir entre 8 et 15 chiffres.',
+                    'country.required' => 'Indiquez le code pays.',
+                    'country.regex' => 'Le pays doit être un code de deux lettres.',
+                    'operator.required' => 'Indiquez l\'opérateur.',
+                    'operator.regex' => 'L\'opérateur indiqué n\'est pas accepté.',
+                ]);
+            }
+
+            $checkout = $payments->startCheckout($request->user(), $plan, $details);
         } catch (PaymentException $exception) {
             return back()->with('error', $exception->getMessage());
         }

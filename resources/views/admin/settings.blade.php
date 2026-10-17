@@ -2,7 +2,7 @@
 @section('document-title', 'Configuration')
 @section('content')
     <h1 class="h2">Configuration</h1>
-    <p class="small text-secondary">Paiement : {{ $paymentDriver }}. UniPay : {{ $unipayConfigured ? 'identifiants présents' : 'non configuré' }}. IA : {{ $aiConfigured ? 'clé présente' : 'clé absente' }}.</p>
+    <p class="small text-secondary">Paiement : {{ $paymentDriver }}. iKeePay : {{ $ikeepayConfigured ? 'identifiants présents' : 'non configuré' }}. IA : {{ $aiStatus['driver'] }}, repli {{ $aiStatus['fallback'] !== '' ? $aiStatus['fallback'] : 'aucun' }}.</p>
     <form method="POST" action="{{ route('admin.settings.update') }}" class="card mt-3">
         @csrf @method('PUT')
         <div class="card-body">
@@ -15,8 +15,27 @@
                         </div>
                     </div>
                 @endforeach
-                <div class="col-md-6"><label class="form-label">Modèle IA</label><input class="form-control" name="ai_model" value="{{ $settings->get('ai_model') }}" placeholder="Modèle IA (sans clé)"></div>
-                <div class="col-md-6"><label class="form-label">URL de base IA</label><input class="form-control" name="ai_base_url" value="{{ $settings->get('ai_base_url') }}" placeholder="URL de base IA"></div>
+                <div class="col-md-6">
+                    <label class="form-label" for="ai_driver">Fournisseur IA</label>
+                    <select class="form-select" id="ai_driver" name="ai_driver">
+                        <option value="" @selected(($settings->get('ai_driver', '') ?? '') === '')>Défini par l'environnement</option>
+                        @foreach (['anthropic' => 'Anthropic Claude', 'gemini' => 'Google Gemini', 'groq' => 'Groq'] as $value => $label)
+                            <option value="{{ $value }}" @selected($settings->get('ai_driver', '') === $value)>{{ $label }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label" for="ai_fallback_driver">Repli facultatif</label>
+                    <select class="form-select" id="ai_fallback_driver" name="ai_fallback_driver">
+                        <option value="" @selected(($settings->get('ai_fallback_driver', '') ?? '') === '')>Aucun repli</option>
+                        @foreach (['anthropic' => 'Anthropic Claude', 'gemini' => 'Google Gemini', 'groq' => 'Groq'] as $value => $label)
+                            <option value="{{ $value }}" @selected($settings->get('ai_fallback_driver', '') === $value)>{{ $label }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="col-md-4"><label class="form-label" for="anthropic_model">Modèle Anthropic</label><input class="form-control" id="anthropic_model" name="anthropic_model" value="{{ $settings->get('anthropic_model', '') }}" maxlength="80" autocomplete="off" placeholder="Identifiant du modèle"></div>
+                <div class="col-md-4"><label class="form-label" for="gemini_model">Modèle Gemini</label><input class="form-control" id="gemini_model" name="gemini_model" value="{{ $settings->get('gemini_model', '') }}" maxlength="80" autocomplete="off" placeholder="Identifiant du modèle"></div>
+                <div class="col-md-4"><label class="form-label" for="groq_model">Modèle Groq</label><input class="form-control" id="groq_model" name="groq_model" value="{{ $settings->get('groq_model', '') }}" maxlength="80" autocomplete="off" placeholder="Identifiant du modèle"></div>
                 <div class="col-md-6"><label class="form-label">Raison sociale</label><input class="form-control" name="legal_name" value="{{ $settings->get('legal_name') }}" placeholder="Raison sociale"></div>
                 <div class="col-md-6"><label class="form-label">E-mail légal</label><input class="form-control" name="legal_email" value="{{ $settings->get('legal_email') }}" placeholder="E-mail légal"></div>
                 <div class="col-md-6"><label class="form-label">Adresse</label><input class="form-control" name="legal_address" value="{{ $settings->get('legal_address') }}" placeholder="Adresse"></div>

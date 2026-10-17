@@ -6,6 +6,11 @@ use App\Exceptions\AiException;
 
 class UnconfiguredAiProvider implements AiProvider
 {
+    public function name(): string
+    {
+        return 'unconfigured';
+    }
+
     public function configured(): bool
     {
         return false;
@@ -13,6 +18,6 @@ class UnconfiguredAiProvider implements AiProvider
 
     public function complete(string $system, string $userPayload): array
     {
-        throw new AiException('Le fournisseur d\'IA n\'est pas configuré. Ajoutez AI_API_KEY dans l\'environnement.');
+        throw new AiException('Le fournisseur d\'IA n\'est pas configuré. Ajoutez la clé API et le modèle du fournisseur dans l\'environnement.');
     }
 }
