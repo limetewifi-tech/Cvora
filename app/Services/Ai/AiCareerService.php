@@ -103,8 +103,12 @@ class AiCareerService
 
     private function run(User $user, string $feature, array $data): AiProposal
     {
+        if ($this->provider instanceof AiRouter && ($refusal = $this->provider->refusal()) !== null) {
+            return new AiProposal(false, $feature, error: $refusal);
+        }
+
         if (! $this->provider->configured()) {
-            return new AiProposal(false, $feature, error: 'Le fournisseur d\'IA n\'est pas configuré. Ajoutez une clé API dans l\'environnement du serveur.');
+            return new AiProposal(false, $feature, error: 'Le fournisseur d\'IA n\'est pas configuré. Ajoutez une clé API et un modèle dans l\'environnement du serveur.');
         }
 
         try {

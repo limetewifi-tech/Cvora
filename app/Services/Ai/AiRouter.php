@@ -8,7 +8,14 @@ use Illuminate\Support\Facades\Log;
 
 class AiRouter implements AiProvider
 {
+    public const SUPPORTED = ['anthropic', 'gemini', 'groq'];
+
     public function __construct(private SettingsRepository $settings) {}
+
+    public static function unsupportedMessage(string $name): string
+    {
+        return 'Le fournisseur « '.AiStatus::publicToken($name).' » n\'est pas pris en charge. Utilisez anthropic, gemini ou groq. Aucun autre fournisseur n\'est appelé.';
+    }
 
     public function name(): string
     {
@@ -30,13 +37,30 @@ class AiRouter implements AiProvider
         return (string) $this->settings->get('ai_fallback_driver', (string) config('cvora.ai.fallback'));
     }
 
+    public function refusal(): ?string
+    {
+        $driver = $this->driverName();
+
+        if (! in_array($driver, self::SUPPORTED, true) && $driver !== 'fake') {
+            return self::unsupportedMessage($driver);
+        }
+
+        if (! $this->configured()) {
+            $shown = AiStatus::publicToken($driver);
+
+            return 'Le fournisseur « '.($shown !== '' ? $shown : 'sélectionné').' » n\'est pas configuré. Ajoutez sa clé API et son modèle dans l\'environnement du serveur. Aucun autre fournisseur n\'est appelé.';
+        }
+
+        return null;
+    }
+
     public function complete(string $system, string $userPayload): array
     {
-        $primary = $this->resolve($this->driverName());
-
-        if (! $primary->configured()) {
-            throw new AiException('Le fournisseur d\'IA n\'est pas configuré. Ajoutez une clé API et un modèle dans l\'environnement du serveur.');
+        if ($refusal = $this->refusal()) {
+            throw new AiException($refusal);
         }
+
+        $primary = $this->resolve($this->driverName());
 
         try {
             return $primary->complete($system, $userPayload);
@@ -60,7 +84,7 @@ class AiRouter implements AiProvider
     {
         $name = $this->fallbackName();
 
-        if ($name === '' || $name === $this->driverName() || $name === 'fake') {
+        if ($name === '' || $name === $this->driverName() || $name === 'fake' || ! in_array($name, self::SUPPORTED, true)) {
             return null;
         }
 

@@ -203,7 +203,7 @@ class PanelController extends Controller
             'ai_fallback_driver' => ['nullable', Rule::in(['anthropic', 'gemini', 'groq'])],
             'anthropic_model' => ['nullable', 'regex:/^[A-Za-z0-9._-]{1,80}$/'],
             'gemini_model' => ['nullable', 'regex:/^[A-Za-z0-9._-]{1,80}$/'],
-            'groq_model' => ['nullable', 'regex:/^[A-Za-z0-9._-]{1,80}$/'],
+            'groq_model' => ['nullable', 'regex:/^[A-Za-z0-9._-]{1,40}(?:\/[A-Za-z0-9._-]{1,39})?$/'],
             'legal_name' => ['nullable', 'string', 'max:160'],
             'legal_address' => ['nullable', 'string', 'max:255'],
             'legal_email' => ['nullable', 'email', 'max:180'],
