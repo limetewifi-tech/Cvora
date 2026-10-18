@@ -28,6 +28,17 @@
             <fieldset>
                 <legend class="form-label mb-1">Choisissez un modèle</legend>
                 <p class="small text-secondary">Votre modèle retenu est sélectionné lorsqu'il est disponible. Sinon, Moderne est proposé. Vous pourrez changer de mise en page dans l'éditeur.</p>
+                @if ($withAssistant ?? false)
+                    <input type="hidden" name="ia" value="1">
+                    <p class="small">Après l'enregistrement, l'éditeur s'ouvre avec l'assistant. Une proposition n'est appliquée que si vous la validez.</p>
+                @endif
+                <label class="form-label mt-2" for="filtre-metier">Filtrer par métier</label>
+                <select class="form-select mb-3" id="filtre-metier" data-sector-picker>
+                    <option value="tous">Tous les métiers</option>
+                    @foreach (\App\Support\ResumeTemplateCatalog::sectors() as $key => $label)
+                        <option value="{{ $key }}">{{ $label }}</option>
+                    @endforeach
+                </select>
                 @php
                     $preferred = $templates->first(fn ($template) => $template->slug === ($preferredSlug ?? null) && (! $template->is_premium || $quota->allows(auth()->user(), 'premium_templates')));
                     $defaultTemplate = $preferred ?? $templates->first(fn ($template) => ! $template->is_premium || $quota->allows(auth()->user(), 'premium_templates'));
@@ -35,10 +46,13 @@
                 @if ($templates->isEmpty())
                     <p class="alert alert-warning mb-0">Aucun modèle n'est disponible pour le moment.</p>
                 @else
-                    <div class="vstack gap-2">
+                    <div class="vstack gap-2 cvora-choice-list" data-template-list>
                         @foreach ($templates as $template)
-                            @php $allowed = ! $template->is_premium || $quota->allows(auth()->user(), 'premium_templates'); @endphp
-                            <label class="cvora-choice d-flex gap-3 border rounded p-3 {{ $allowed ? '' : 'opacity-75' }}">
+                            @php
+                                $allowed = ! $template->is_premium || $quota->allows(auth()->user(), 'premium_templates');
+                                $sector = \App\Support\ResumeTemplateCatalog::find($template->slug)['sector'] ?? '';
+                            @endphp
+                            <label class="cvora-choice d-flex gap-3 border rounded p-3 {{ $allowed ? '' : 'opacity-75' }}" data-template-sector="{{ $sector }}">
                                 <input class="form-check-input mt-1" type="radio" name="template_id" value="{{ $template->id }}" @checked(old('template_id', $defaultTemplate?->id) == $template->id) @disabled(! $allowed) @required($allowed)>
                                 <span>
                                     <span class="fw-semibold">{{ $template->name }}</span>
@@ -62,4 +76,12 @@
             <button class="btn btn-primary" type="submit" data-loading>Continuer dans l'éditeur</button>
         </div>
     </form>
+    <script>
+        document.querySelector('[data-sector-picker]')?.addEventListener('change', (event) => {
+            const sector = event.target.value;
+            document.querySelectorAll('[data-template-list] [data-template-sector]').forEach((row) => {
+                row.hidden = sector !== 'tous' && row.dataset.templateSector !== sector;
+            });
+        });
+    </script>
 @endsection

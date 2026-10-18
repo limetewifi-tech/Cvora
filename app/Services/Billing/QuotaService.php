@@ -40,6 +40,13 @@ class QuotaService
         return $plan ? $plan->allows($feature) : false;
     }
 
+    public function allowsCleanResumePrint(User $user): bool
+    {
+        $subscription = $this->subscription($user);
+
+        return $subscription?->isActive() === true && $this->allows($user, 'export_pdf');
+    }
+
     public function assertModule(string $flag, string $message): void
     {
         if (! $this->moduleEnabled($flag)) {

@@ -66,8 +66,12 @@ class LetterSheet
         $when = $date->timezone(config('app.timezone'))->translatedFormat('j F Y');
         $place = $city !== '' ? $city.', le '.$when : 'Le '.$when;
 
+        $meta = LetterLayouts::all()[$layout] ?? ['family' => $layout, 'accent' => '#0F766E'];
+
         return [
             'layout' => $layout,
+            'family' => $meta['family'] ?? $layout,
+            'accent' => $meta['accent'] ?? '#0F766E',
             'name' => $name !== '' ? $name : 'Prénom Nom',
             'sender' => $sender,
             'recipient' => $recipient,

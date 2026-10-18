@@ -53,7 +53,20 @@ class ResumeTemplateTest extends TestCase
             $this->assertStringContainsString('class="monogram ', $html, $slug);
             $this->assertStringContainsString('Initiales', $html, $slug);
             $this->assertStringNotContainsString('Photo de', $html, $slug);
+            $this->assertStringContainsString('density-roomy', $html, $slug);
+            $this->assertStringContainsString('margin: 14mm 12mm', $html, $slug);
         }
+
+        $screen = view('resumes.paper', [
+            'document' => app(ResumePresenter::class)->present(SampleDocument::resume(
+                ResumeTemplate::query()->where('slug', 'classique')->firstOrFail()
+            )),
+            'title' => 'Classique',
+            'screen' => true,
+            'embedded' => true,
+        ])->render();
+        $this->assertStringContainsString('width: 210mm', $screen);
+        $this->assertStringContainsString('min-height: 297mm', $screen);
     }
 
     public function test_a_photo_is_cropped_for_the_template_and_survives_a_template_change(): void
@@ -165,6 +178,13 @@ class ResumeTemplateTest extends TestCase
             'summary' => str_repeat('Parcours construit à Kinshasa, avec des faits vérifiables. ', 8),
             'content' => ResumeContent::normalizeContent($content),
         ])->save();
+
+        $presented = app(ResumePresenter::class)->present($resume->fresh());
+        $this->assertSame('compact', $presented['density']);
+        $this->assertStringContainsString(
+            'density-compact',
+            view('resumes.paper', ['document' => $presented, 'title' => 'Long'])->render(),
+        );
 
         $pdf = app(PdfExporter::class)->resume($resume)->getContent();
         $parsed = (new Parser)->parseContent($pdf);

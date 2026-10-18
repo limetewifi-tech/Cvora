@@ -4,6 +4,7 @@ namespace App\Services\Documents;
 
 use App\Models\CoverLetter;
 use App\Models\Resume;
+use App\Services\Billing\QuotaService;
 use Illuminate\Support\Str;
 use PhpOffice\PhpWord\IOFactory;
 use PhpOffice\PhpWord\PhpWord;
@@ -17,8 +18,14 @@ class DocxExporter
     public function resume(Resume $resume): BinaryFileResponse
     {
         $document = $this->presenter->present($resume);
+        $resume->loadMissing('user');
         $phpWord = $this->document();
         $section = $phpWord->addSection($this->margins());
+
+        if ($resume->user === null || ! app(QuotaService::class)->allowsCleanResumePrint($resume->user)) {
+            $header = $section->addHeader();
+            $header->addText('CVora', ['color' => '94A3B8', 'bold' => true, 'size' => 28], ['alignment' => Jc::CENTER]);
+        }
         $primary = ltrim($document['primary'], '#');
         $photo = app(ResumePhoto::class)->temporarySquare($resume);
 

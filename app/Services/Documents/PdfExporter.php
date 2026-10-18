@@ -4,6 +4,7 @@ namespace App\Services\Documents;
 
 use App\Models\CoverLetter;
 use App\Models\Resume;
+use App\Services\Billing\QuotaService;
 use App\Support\LetterSheet;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Response;
@@ -20,9 +21,11 @@ class PdfExporter
 
     public function resume(Resume $resume): Response
     {
+        $resume->loadMissing('user');
         $pdf = Pdf::loadView('resumes.paper', [
             'document' => $this->presenter->present($resume),
             'title' => $resume->title,
+            'watermark' => $resume->user === null || ! app(QuotaService::class)->allowsCleanResumePrint($resume->user),
         ])->setPaper('a4');
 
         $pdf->setOption('isRemoteEnabled', false);

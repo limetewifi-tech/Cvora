@@ -48,6 +48,7 @@ class ResumePresenter
         $name = trim($personal['first_name'].' '.$personal['last_name']) ?: 'Prénom Nom';
         $initials = $this->initials($name);
         $photo = $this->photos->dataUri($resume->photo_path, $shape, ResumePhoto::backdrop($layout, $theme['primary']));
+        $summary = trim((string) $resume->summary);
 
         return [
             'slug' => $slug,
@@ -57,7 +58,8 @@ class ResumePresenter
             'headline' => $personal['headline'],
             'contact' => array_column($lines, 'value'),
             'lines' => $lines,
-            'summary' => trim((string) $resume->summary),
+            'summary' => $summary,
+            'density' => $this->density($summary, $sections),
             'sections' => $sections,
             'by' => collect($sections)->keyBy('key')->all(),
             'photo' => $photo,
@@ -78,6 +80,35 @@ class ResumePresenter
         $value = trim($value);
 
         return $value === '' ? null : ['label' => $label, 'value' => $value];
+    }
+
+    /**
+     * @param  array<int, array<string, mixed>>  $sections
+     */
+    private function density(string $summary, array $sections): string
+    {
+        $chars = mb_strlen($summary);
+
+        foreach ($sections as $section) {
+            foreach ($section['items'] as $item) {
+                $chars += mb_strlen(implode('', [
+                    $item['primary'] ?? '',
+                    $item['secondary'] ?? '',
+                    $item['dates'] ?? '',
+                    $item['body'] ?? '',
+                ]));
+            }
+        }
+
+        if ($chars < 900) {
+            return 'roomy';
+        }
+
+        if ($chars < 2200) {
+            return 'balanced';
+        }
+
+        return 'compact';
     }
 
     private function initials(string $name): string

@@ -3,6 +3,7 @@
 namespace App\Services\Documents;
 
 use App\Models\Resume;
+use App\Support\ResumeTemplateCatalog;
 use GdImage;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
@@ -30,11 +31,13 @@ class ResumePhoto
         'minimal' => 'circle',
         'executive' => 'circle',
         'technical' => 'square',
+        'rail' => 'portrait',
+        'banner' => 'circle',
     ];
 
     public static function layout(string $slug): string
     {
-        return self::LAYOUTS[$slug] ?? 'modern';
+        return self::LAYOUTS[$slug] ?? ResumeTemplateCatalog::layoutFor($slug);
     }
 
     public static function shape(string $layout): string
@@ -58,7 +61,7 @@ class ResumePhoto
     public static function backdrop(string $layout, string $primary): string
     {
         return match ($layout) {
-            'corporate', 'blue', 'executive' => $primary,
+            'corporate', 'blue', 'executive', 'rail', 'banner' => $primary,
             'elegant' => '#F4EFE8',
             default => '#FFFFFF',
         };

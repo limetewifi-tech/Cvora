@@ -16,18 +16,20 @@
                 </button>
                 <div class="collapse navbar-collapse" id="menu-public">
                     <ul class="navbar-nav ms-lg-auto align-items-lg-center gap-lg-1 py-3 py-lg-0">
-                        <li class="nav-item"><a class="nav-link {{ request()->routeIs('templates.*') ? 'active' : '' }}" href="{{ route('templates.index') }}">Modèles</a></li>
-                        <li class="nav-item"><a class="nav-link {{ request()->routeIs('pricing') ? 'active' : '' }}" href="{{ route('pricing') }}">Tarifs</a></li>
-                        <li class="nav-item"><a class="nav-link {{ request()->routeIs('resources') || request()->routeIs('resources.show') ? 'active' : '' }}" href="{{ route('resources') }}">Guides</a></li>
+                        <li class="nav-item"><a class="nav-link {{ request()->routeIs('home') ? 'active' : '' }}" href="{{ route('home') }}">Accueil</a></li>
+                        <li class="nav-item"><a class="nav-link {{ request()->routeIs('dashboard') || request()->routeIs('cvs.*') || request()->routeIs('letters.*') || request()->routeIs('imports.*') ? 'active' : '' }}" href="{{ route('dashboard') }}">Mes documents</a></li>
+                        <li class="nav-item"><a class="nav-link {{ request()->routeIs('profile.edit') || request()->routeIs('settings.edit') ? 'active' : '' }}" href="{{ route('profile.edit') }}">Mon compte</a></li>
+                        <li class="nav-item"><a class="nav-link cvora-nav-quiet {{ request()->routeIs('templates.index') || request()->routeIs('templates.example') || request()->routeIs('templates.paper') ? 'active' : '' }}" href="{{ route('templates.index') }}">Modèles</a></li>
+                        <li class="nav-item"><a class="nav-link cvora-nav-quiet {{ request()->routeIs('templates.letters') || request()->routeIs('templates.letters.paper') ? 'active' : '' }}" href="{{ route('templates.letters') }}">Lettres</a></li>
+                        <li class="nav-item"><a class="nav-link cvora-nav-quiet {{ request()->routeIs('pricing') ? 'active' : '' }}" href="{{ route('pricing') }}">Tarifs</a></li>
+                        <li class="nav-item"><a class="nav-link cvora-nav-quiet {{ request()->routeIs('resources') || request()->routeIs('resources.show') ? 'active' : '' }}" href="{{ route('resources') }}">Guides</a></li>
                     </ul>
                     <div class="d-grid gap-2 d-lg-flex align-items-lg-center ms-lg-3 pb-3 pb-lg-0">
                         @include('partials.theme-toggle')
-                        @auth
-                            <a class="btn btn-outline-primary" href="{{ route('dashboard') }}">Tableau de bord</a>
-                        @else
+                        @guest
                             <a class="btn btn-outline-primary" href="{{ route('login') }}">Connexion</a>
-                            <a class="btn btn-primary" href="{{ route('templates.index') }}">Créer un CV</a>
-                        @endauth
+                            <a class="btn btn-primary" href="{{ route('register') }}">Inscription</a>
+                        @endguest
                     </div>
                 </div>
             </div>
@@ -66,6 +68,10 @@
                         <li><a href="{{ route('legal.notice') }}">Mentions légales</a></li>
                     </ul>
                 </div>
+            </div>
+            <div class="d-flex flex-column flex-sm-row align-items-sm-center gap-3 border-top pt-4 mt-2">
+                <img class="cvora-edos" src="{{ asset('images/edos-services.png') }}" alt="EDOS Services" width="200" height="67">
+                <p class="mb-0 small text-secondary">Design by EDOS Services</p>
             </div>
         </div>
         <p class="border-top mb-0 px-3 py-3 text-center small text-secondary">© {{ date('Y') }} CVora. Aucune promesse d'embauche.</p>
