@@ -38,10 +38,11 @@
         </style>
     @endif
 </head>
-<body class="layout-{{ $sheet['layout'] }}@if ($screen ?? false) is-screen @endif @if ($embedded ?? false) is-embedded @endif">
+@php($letterView = view()->exists('letters.layouts.'.$sheet['layout']) ? 'letters.layouts.'.$sheet['layout'] : 'letters.layouts.composed')
+<body class="layout-{{ $sheet['layout'] }} family-{{ $sheet['family'] ?? $sheet['layout'] }}@if ($screen ?? false) is-screen @endif @if ($embedded ?? false) is-embedded @endif">
     @if ($screen ?? false)
         <div class="a4-stage"><div class="a4-sheet">
-            @include('letters.layouts.'.$sheet['layout'])
+            @include($letterView)
         </div></div>
         @if ($embedded ?? false)
             <script>
@@ -68,7 +69,7 @@
             </script>
         @endif
     @else
-        @include('letters.layouts.'.$sheet['layout'])
+        @include($letterView)
     @endif
 </body>
 </html>

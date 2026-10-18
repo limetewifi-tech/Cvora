@@ -40,8 +40,11 @@ class PublicSiteTest extends TestCase
             ->assertSee('Moderne')
             ->assertSee('Élégant')
             ->assertSee('Technique')
-            ->assertSee('Choisir ce modèle')
-            ->assertSee('Aperçu détaillé')
+            ->assertSee('Voir le modèle')
+            ->assertSee('Utiliser ce modèle')
+            ->assertSee('Créer un CV avec l\'IA', false)
+            ->assertSee('Design by EDOS Services', false)
+            ->assertSee('images/edos-services.png', false)
             ->assertSee('data-gallery-filter="original"', false)
             ->assertSee('data-category="classique"', false)
             ->assertSee('miniature=1', false);

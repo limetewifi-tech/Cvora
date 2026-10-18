@@ -628,6 +628,18 @@ pre {
     border-color: var(--cvora-blue);
 }
 
+.cvora-edos {
+    display: block;
+    width: auto;
+    max-width: min(200px, 100%);
+    height: auto;
+}
+
+.cvora-choice-list {
+    max-height: 28rem;
+    overflow: auto;
+}
+
 .cvora-thumb {
     position: relative;
     display: block;

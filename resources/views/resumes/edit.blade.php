@@ -56,6 +56,12 @@
             <a class="btn btn-outline-danger" href="{{ route('cvs.delete', $resume) }}">Supprimer</a>
         </div>
     </div>
+    @if (request()->boolean('assistant'))
+        <div class="alert alert-info" id="assistant-cv">
+            L'assistant est prêt pour ce CV. Une proposition n'est appliquée que si vous la validez.
+            <a href="{{ route('assistant.index', ['cv' => $resume->id]) }}">Ouvrir l'assistant</a>
+        </div>
+    @endif
     @if (session('suggestion'))
         <div class="alert alert-warning">Proposition non appliquée : {{ session('suggestion') }}</div>
     @endif

@@ -32,6 +32,11 @@ class HomeController extends Controller
         ]);
     }
 
+    public function letters()
+    {
+        return view('public.letters');
+    }
+
     public function resources()
     {
         return view('public.resources', ['guides' => Guides::all()]);

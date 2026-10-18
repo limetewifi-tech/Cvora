@@ -86,7 +86,21 @@
         .density-compact .section { margin-bottom: 1pt; }
         .density-compact .item, .density-compact .job { margin-bottom: 4pt; }
         .density-roomy.layout-corporate .split td,
-        .density-roomy.layout-blue .split td { height: 250mm; }
+        .density-roomy.layout-blue .split td,
+        .density-roomy.layout-rail .split td { height: 250mm; }
+        .layout-rail .side { width: 34%; padding: 3.5mm; }
+        .layout-rail .side h1, .layout-rail .side p { color: #fff; }
+        .layout-rail .contact-label { color: #e7e5e4; }
+        .layout-rail .monogram { border: 0.4mm solid #fff; margin-bottom: 3mm; }
+        .layout-rail .photo { margin-bottom: 3mm; }
+        .layout-banner .exec-head td { padding: 4mm 3mm; color: #fff; }
+        .layout-banner .exec-head h1, .layout-banner .exec-head p { color: #fff; }
+        .layout-banner .gold-line { height: 1.1mm; background: {{ $document['accent'] }}; margin: 0 0 4mm; }
+        .layout-banner .monogram { border: 0.4mm solid #fff; }
+        .cvora-mark { position: fixed; left: 16%; font-size: 32pt; font-weight: bold; color: #94a3b8; z-index: 2; }
+        .cvora-mark-a { top: 22%; }
+        .cvora-mark-b { top: 48%; }
+        .cvora-mark-c { top: 74%; }
     </style>
     @if ($screen ?? false)
         <style>
@@ -107,6 +121,7 @@
         </style>
     @endif
 </head>
+@php($resumePartial = \App\Support\ResumeTemplateCatalog::viewFor($document['slug'], $document['layout']))
 <body class="tpl-{{ $document['slug'] }} layout-{{ $document['layout'] }} density-{{ $document['density'] ?? 'balanced' }}@if ($screen ?? false) is-screen @endif @if ($embedded ?? false) is-embedded @endif">
     @if ($screen ?? false)
         @unless ($embedded ?? false)
@@ -117,7 +132,8 @@
         @endunless
         <div class="a4-stage">
             <div class="a4-sheet">
-                @includeIf('resumes.templates.'.$document['slug'], ['document' => $document])
+                @include('resumes.partials.watermark')
+                @include($resumePartial, ['document' => $document])
             </div>
         </div>
         @if ($embedded ?? false)
@@ -164,7 +180,8 @@
             </script>
         @endif
     @else
-        @includeIf('resumes.templates.'.$document['slug'], ['document' => $document])
+        @include('resumes.partials.watermark')
+        @include($resumePartial, ['document' => $document])
     @endif
 </body>
 </html>
