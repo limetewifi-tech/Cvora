@@ -14,25 +14,31 @@
                 <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#sidebar" aria-label="Fermer le menu"></button>
             </div>
             <div class="offcanvas-body d-flex flex-column px-3 pb-4">
-                <nav class="nav flex-column gap-1">
+                <nav class="nav flex-column gap-1" aria-label="Navigation principale">
                     @php
-                        $links = [
-                            ['dashboard', 'Vue d\'ensemble', 'dashboard', 'bi-grid'],
-                            ['cvs.index', 'Mes CV', ['cvs.index', 'cvs.edit', 'cvs.preview', 'cvs.versions', 'cvs.delete'], 'bi-file-earmark-text'],
-                            ['cvs.create', 'Créer un CV', 'cvs.create', 'bi-plus-circle'],
+                        $primary = [
+                            ['templates.index', 'Modèles', 'templates.*', 'bi-grid-3x3-gap'],
+                            ['cvs.index', 'Mes CV', ['cvs.*', 'imports.*'], 'bi-file-earmark-text'],
+                            ['letters.index', 'Lettres', 'letters.*', 'bi-envelope-paper'],
+                            ['assistant.index', 'Assistant', 'assistant.*', 'bi-stars'],
+                        ];
+                        $secondary = [
+                            ['dashboard', 'Tableau de bord', 'dashboard', 'bi-house'],
                             ['imports.create', 'Importer un CV', 'imports.*', 'bi-upload'],
-                            ['letters.index', 'Lettres de motivation', 'letters.*', 'bi-envelope-paper'],
-                            ['assistant.index', 'Assistant IA', 'assistant.*', 'bi-stars'],
-                            ['studio.index', 'Studio CV', 'studio.*', 'bi-bullseye'],
-                            ['applications.index', 'Mes candidatures', 'applications.*', 'bi-briefcase'],
-                            ['jobs.index', 'Offres d\'emploi', 'jobs.*', 'bi-megaphone'],
-                            ['templates.index', 'Modèles', 'templates.*', 'bi-layout-text-window'],
-                            ['profile.edit', 'Mon profil', 'profile.*', 'bi-person'],
-                            ['billing.index', 'Abonnement et facturation', 'billing.*', 'bi-credit-card'],
+                            ['studio.index', 'Adapter à une offre', 'studio.*', 'bi-bullseye'],
+                            ['applications.index', 'Candidatures', 'applications.*', 'bi-briefcase'],
+                            ['billing.index', 'Abonnement', 'billing.*', 'bi-credit-card'],
+                            ['profile.edit', 'Compte', 'profile.*', 'bi-person'],
                             ['settings.edit', 'Paramètres', 'settings.*', 'bi-gear'],
                         ];
                     @endphp
-                    @foreach ($links as [$route, $label, $pattern, $icon])
+                    @foreach ($primary as [$route, $label, $pattern, $icon])
+                        <a href="{{ route($route) }}" class="cvora-nav-link {{ request()->routeIs($pattern) ? 'active' : '' }}" @if (request()->routeIs($pattern)) aria-current="page" @endif>
+                            <i class="bi {{ $icon }}" aria-hidden="true"></i>{{ $label }}
+                        </a>
+                    @endforeach
+                    <p class="cvora-nav-label mb-0 mt-3">Aussi disponibles</p>
+                    @foreach ($secondary as [$route, $label, $pattern, $icon])
                         <a href="{{ route($route) }}" class="cvora-nav-link {{ request()->routeIs($pattern) ? 'active' : '' }}" @if (request()->routeIs($pattern)) aria-current="page" @endif>
                             <i class="bi {{ $icon }}" aria-hidden="true"></i>{{ $label }}
                         </a>
@@ -52,7 +58,7 @@
                 <p class="mb-0 small text-secondary text-truncate d-none d-md-block">{{ auth()->user()->name }}</p>
                 <div class="d-flex align-items-center gap-2 ms-auto">
                     @include('partials.theme-toggle')
-                    <a class="btn btn-primary" href="{{ route('cvs.create') }}" aria-label="Créer un CV"><i class="bi bi-plus-lg d-sm-none" aria-hidden="true"></i><span class="d-none d-sm-inline">Créer un CV</span></a>
+                    <a class="btn btn-primary" href="{{ route('templates.index') }}" aria-label="Choisir un modèle"><i class="bi bi-plus-lg d-sm-none" aria-hidden="true"></i><span class="d-none d-sm-inline">Choisir un modèle</span></a>
                 </div>
             </header>
             <main id="contenu" class="cvora-content">

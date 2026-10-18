@@ -21,7 +21,10 @@ class AiStatusCommand extends Command
             $this->line('Ce fournisseur n\'est pas pris en charge. Valeurs acceptées : anthropic, gemini, groq. Aucun autre fournisseur n\'est appelé.');
         }
 
-        $this->line('Repli : '.($snapshot['fallback'] !== '' ? $snapshot['fallback'] : 'aucun'));
+        $fallbackLabel = $snapshot['fallback'] !== ''
+            ? $snapshot['fallback']
+            : 'le prochain fournisseur configuré, une seule fois';
+        $this->line('Repli : '.$fallbackLabel);
 
         if (! $snapshot['fallback_supported']) {
             $this->line('Le repli n\'est pas pris en charge et ne sera pas appelé.');

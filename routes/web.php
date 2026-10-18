@@ -18,11 +18,13 @@ use App\Http\Controllers\LegalController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\PaymentWebhookController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\ResumeCoachController;
 use App\Http\Controllers\ResumeController;
 use App\Http\Controllers\ResumeExportController;
 use App\Http\Controllers\ResumeImportController;
 use App\Http\Controllers\ResumeVersionController;
 use App\Http\Controllers\SettingsController;
+use App\Http\Controllers\StartController;
 use App\Http\Controllers\StudioController;
 use App\Http\Controllers\TemplateExampleController;
 use Illuminate\Support\Facades\Route;
@@ -63,6 +65,8 @@ Route::middleware(['auth', 'active', 'verified.if', 'plan'])->group(function () 
     Route::post('/deconnexion', [AuthenticatedSessionController::class, 'destroy'])->name('logout');
 
     Route::get('/tableau-de-bord', [DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/commencer', [StartController::class, 'index'])->name('start.index');
+    Route::post('/commencer', [StartController::class, 'store'])->name('start.store');
     Route::get('/profil', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::put('/profil', [ProfileController::class, 'update'])->name('profile.update');
     Route::get('/parametres', [SettingsController::class, 'edit'])->name('settings.edit');
@@ -78,6 +82,7 @@ Route::middleware(['auth', 'active', 'verified.if', 'plan'])->group(function () 
     Route::post('/abonnement/{plan:slug}', [BillingController::class, 'checkout'])->name('billing.checkout');
 
     Route::get('/assistant', [AssistantController::class, 'index'])->name('assistant.index');
+    Route::post('/assistant/demande', [AssistantController::class, 'ask'])->middleware('throttle:ai')->name('assistant.ask');
     Route::post('/assistant/resume', [AssistantController::class, 'summary'])->middleware('throttle:ai')->name('assistant.summary');
     Route::post('/assistant/experiences', [AssistantController::class, 'experiences'])->middleware('throttle:ai')->name('assistant.experiences');
     Route::post('/assistant/competences', [AssistantController::class, 'skills'])->middleware('throttle:ai')->name('assistant.skills');
@@ -101,7 +106,12 @@ Route::middleware(['auth', 'active', 'verified.if', 'plan'])->group(function () 
         Route::get('/cvs/{resume}/supprimer', [ResumeController::class, 'delete'])->name('cvs.delete');
         Route::delete('/cvs/{resume}', [ResumeController::class, 'destroy'])->name('cvs.destroy');
         Route::post('/cvs/{resume}/dupliquer', [ResumeController::class, 'duplicate'])->name('cvs.duplicate');
+        Route::post('/cvs/{resume}/photo', [ResumeController::class, 'photo'])->name('cvs.photo');
+        Route::delete('/cvs/{resume}/photo', [ResumeController::class, 'destroyPhoto'])->name('cvs.photo.destroy');
         Route::get('/cvs/{resume}/apercu', [ResumeController::class, 'preview'])->name('cvs.preview');
+        Route::post('/cvs/{resume}/conversation', [ResumeCoachController::class, 'store'])->middleware('throttle:ai')->name('cvs.coach');
+        Route::post('/cvs/{resume}/correction', [ResumeCoachController::class, 'proofread'])->middleware('throttle:ai')->name('cvs.proofread');
+        Route::post('/cvs/{resume}/modele', [ResumeController::class, 'preferTemplate'])->name('cvs.prefer-template');
         Route::get('/cvs/{resume}/export/{format}', [ResumeExportController::class, 'download'])->whereIn('format', ['pdf', 'docx'])->name('cvs.export');
         Route::get('/cvs/{resume}/versions', [ResumeVersionController::class, 'index'])->name('cvs.versions');
         Route::post('/cvs/{resume}/versions', [ResumeVersionController::class, 'store'])->name('cvs.versions.store');
@@ -110,8 +120,10 @@ Route::middleware(['auth', 'active', 'verified.if', 'plan'])->group(function () 
 
         Route::get('/lettres', [CoverLetterController::class, 'index'])->name('letters.index');
         Route::get('/lettres/nouvelle', [CoverLetterController::class, 'create'])->name('letters.create');
+        Route::get('/lettres/modeles/{layout}', [CoverLetterController::class, 'sample'])->name('letters.sample');
         Route::post('/lettres', [CoverLetterController::class, 'store'])->name('letters.store');
         Route::get('/lettres/{letter}/modifier', [CoverLetterController::class, 'edit'])->name('letters.edit');
+        Route::get('/lettres/{letter}/apercu', [CoverLetterController::class, 'preview'])->name('letters.preview');
         Route::put('/lettres/{letter}', [CoverLetterController::class, 'update'])->name('letters.update');
         Route::delete('/lettres/{letter}', [CoverLetterController::class, 'destroy'])->name('letters.destroy');
         Route::post('/lettres/{letter}/versions', [CoverLetterController::class, 'snapshot'])->name('letters.versions.store');

@@ -20,12 +20,19 @@ class AiCareerService
         private QuotaService $quota,
     ) {}
 
-    public function improveSummary(User $user, string $summary, string $tone = 'professionnel'): AiProposal
+    public function improveSummary(User $user, string $summary, string $tone = 'professionnel', string $goal = ''): AiProposal
     {
+        $instruction = 'Reformule le résumé sans ajouter de fait.';
+
+        if (trim($goal) !== '') {
+            $instruction .= ' Objectif indiqué par le candidat : '.trim($goal);
+        }
+
         return $this->run($user, 'summary', [
             'text' => $summary,
             'tone' => $tone,
-            'instruction' => 'Reformule le résumé sans ajouter de fait.',
+            'goal' => trim($goal),
+            'instruction' => $instruction,
         ]);
     }
 
@@ -78,6 +85,24 @@ class AiCareerService
             $this->quota->assertFeature($user, 'job_adaptation', 'L\'adaptation aux offres est incluse dans l\'offre Pro.');
         }, $context + [
             'instruction' => 'Compare l\'offre au profil. N\'ajoute aucune compétence que le candidat ne possède pas.',
+        ]);
+    }
+
+    public function proofread(User $user, array $context): AiProposal
+    {
+        $instruction = ($context['mode'] ?? '') === 'clarity'
+            ? 'Rends le français plus clair et plus professionnel. Conserve chaque fait, chaque nom, chaque date et chaque chiffre. items reprend uniquement les textes fournis, avec le même target et le même index.'
+            : 'Corrige l\'orthographe et la grammaire. Conserve le sens, les noms, les dates et les chiffres. items reprend uniquement les textes fournis, avec le même target et le même index.';
+
+        return $this->run($user, 'proofread', $context + [
+            'instruction' => $instruction,
+        ]);
+    }
+
+    public function coach(User $user, array $context): AiProposal
+    {
+        return $this->run($user, 'coach', $context + [
+            'instruction' => 'Réponds en français, brièvement. reply explique quoi compléter. suggestions reformule uniquement des faits fournis. target vaut summary, headline, experience, education ou skill. index est le numéro de ligne, ou null. N\'invente aucun fait et ne dis pas que le CV a été modifié.',
         ]);
     }
 

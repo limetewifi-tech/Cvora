@@ -4,14 +4,13 @@
         <div class="container py-5">
             <div class="row align-items-center g-5">
                 <div class="col-lg-6">
-                    <p class="cvora-kicker mb-3"><i class="bi bi-stars" aria-hidden="true"></i> L'intelligence au service de votre carrière.</p>
-                    <h1 class="display-5 fw-semibold">Des candidatures qui ouvrent des portes.</h1>
-                    <p class="lead text-secondary mt-3">Créez, améliorez et actualisez votre CV avec l'IA. Rédigez des lettres de motivation personnalisées et préparez vos candidatures en quelques minutes.</p>
+                    <p class="cvora-kicker mb-3">Galerie CVora</p>
+                    <h1 class="display-5 fw-semibold">Choisissez un modèle, puis remplissez votre CV.</h1>
+                    <p class="lead text-secondary mt-3">Parcourez les mises en page, ouvrez celle qui vous convient, et gardez vos textes si vous en changez ensuite. L'assistant reformule seulement ce que vous validez.</p>
                     <div class="d-grid gap-2 d-sm-flex mt-4">
-                        <a class="btn btn-primary" href="{{ route('register') }}">Créer mon CV gratuitement</a>
-                        <a class="btn btn-outline-primary" href="{{ route('templates.index') }}">Découvrir les modèles</a>
+                        <a class="btn btn-primary" href="{{ route('templates.index') }}">Voir les modèles</a>
+                        <a class="btn btn-outline-primary" href="{{ route('register') }}">Créer un compte</a>
                     </div>
-                    <p class="mt-4 mb-0 text-secondary">« Votre talent mérite le meilleur CV. »</p>
                 </div>
                 <div class="col-lg-6">
                     <div class="card overflow-hidden">
@@ -72,25 +71,11 @@
 
     <section class="py-5">
         <div class="container">
-            <div class="d-flex align-items-end justify-content-between gap-3">
+            <div class="d-flex align-items-end justify-content-between gap-3 mb-3">
                 <h2 class="h1 mb-0">Modèles</h2>
-                <a class="fw-semibold" href="{{ route('templates.index') }}">Voir la galerie</a>
+                <a class="fw-semibold" href="{{ route('templates.index') }}">Toute la galerie</a>
             </div>
-            <div class="row g-3 mt-2">
-                @forelse ($templates as $template)
-                    <div class="col-sm-6 col-lg-3">
-                        <a href="{{ route('templates.example', $template) }}" class="card h-100 text-decoration-none text-body overflow-hidden">
-                            <iframe title="Aperçu {{ $template->name }}" src="{{ route('templates.paper', $template) }}" class="cvora-frame-sm w-100 border-0 bg-white" loading="lazy"></iframe>
-                            <div class="card-body border-top">
-                                <h3 class="h6 mb-1">{{ $template->name }}</h3>
-                                <p class="small text-secondary mb-0">{{ $template->is_premium ? 'Modèle premium' : 'Inclus dans l\'offre gratuite' }}</p>
-                            </div>
-                        </a>
-                    </div>
-                @empty
-                    <p class="text-secondary">Les modèles apparaissent après l'initialisation de la base.</p>
-                @endforelse
-            </div>
+            @include('public.partials.gallery', ['templates' => $templates])
         </div>
     </section>
 

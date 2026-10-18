@@ -27,9 +27,10 @@
             </div>
             <fieldset>
                 <legend class="form-label mb-1">Choisissez un modèle</legend>
-                <p class="small text-secondary">Moderne est déjà sélectionné. Vous pourrez changer de mise en page dans l'éditeur. Les modèles Premium demandent l'abonnement correspondant.</p>
+                <p class="small text-secondary">Votre modèle retenu est sélectionné lorsqu'il est disponible. Sinon, Moderne est proposé. Vous pourrez changer de mise en page dans l'éditeur.</p>
                 @php
-                    $defaultTemplate = $templates->first(fn ($template) => ! $template->is_premium || $quota->allows(auth()->user(), 'premium_templates'));
+                    $preferred = $templates->first(fn ($template) => $template->slug === ($preferredSlug ?? null) && (! $template->is_premium || $quota->allows(auth()->user(), 'premium_templates')));
+                    $defaultTemplate = $preferred ?? $templates->first(fn ($template) => ! $template->is_premium || $quota->allows(auth()->user(), 'premium_templates'));
                 @endphp
                 @if ($templates->isEmpty())
                     <p class="alert alert-warning mb-0">Aucun modèle n'est disponible pour le moment.</p>
@@ -42,6 +43,9 @@
                                 <span>
                                     <span class="fw-semibold">{{ $template->name }}</span>
                                     <span class="badge text-bg-{{ $template->is_premium ? 'warning' : 'primary' }} ms-1">{{ $template->is_premium ? 'Premium' : 'Inclus' }}</span>
+                                    @if ((string) old('template_id', $defaultTemplate?->id) === (string) $template->id)
+                                        <span class="badge text-bg-success ms-1">Sélectionné</span>
+                                    @endif
                                     <span class="d-block small text-secondary">{{ $template->description }}</span>
                                     @unless ($allowed)
                                         <span class="d-block small">Disponible avec l'abonnement Premium ou Pro.</span>

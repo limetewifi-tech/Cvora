@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\ResumeTemplate;
 use Tests\CreatesCvoraWorld;
 use Tests\TestCase;
 
@@ -18,7 +19,7 @@ class ResumeTest extends TestCase
     public function test_a_resume_can_be_created_updated_and_deleted(): void
     {
         $user = $this->makeUser('premium');
-        $template = \App\Models\ResumeTemplate::query()->where('slug', 'moderne')->firstOrFail();
+        $template = ResumeTemplate::query()->where('slug', 'moderne')->firstOrFail();
 
         $this->actingAs($user)->post(route('cvs.store'), [
             'title' => 'Candidature banque',
@@ -46,6 +47,31 @@ class ResumeTest extends TestCase
         $this->assertDatabaseMissing('resumes', ['id' => $resume->id]);
     }
 
+    public function test_changing_the_template_keeps_the_text_and_only_changes_the_layout(): void
+    {
+        $user = $this->makeUser('premium');
+        $resume = $this->makeResume($user);
+        $lateral = ResumeTemplate::query()->where('slug', 'experimente')->firstOrFail();
+
+        $this->actingAs($user)->put(route('cvs.update', $resume), $this->resumeForm($resume, [
+            'template_id' => $lateral->id,
+            'summary' => 'Analyste à Kinshasa.',
+            'theme' => ['primary' => '#1C1917', 'accent' => '#0F766E', 'font' => 'serif', 'size' => 'l'],
+        ]))->assertRedirect();
+
+        $resume->refresh();
+        $this->assertSame($lateral->id, $resume->template_id);
+        $this->assertSame('Analyste à Kinshasa.', $resume->summary);
+        $this->assertSame('Banque exemple', $resume->content['experiences'][0]['company']);
+
+        $this->get(route('cvs.preview', $resume))
+            ->assertOk()
+            ->assertSee('DejaVu Serif', false)
+            ->assertSee('12pt', false)
+            ->assertSee('layout-corporate', false)
+            ->assertSee('Analyste à Kinshasa.');
+    }
+
     public function test_stale_autosave_is_rejected(): void
     {
         $user = $this->makeUser();
@@ -63,11 +89,11 @@ class ResumeTest extends TestCase
     {
         $user = $this->makeUser();
         $this->makeResume($user);
-        $premium = \App\Models\ResumeTemplate::query()->where('slug', 'technique')->firstOrFail();
+        $premium = ResumeTemplate::query()->where('slug', 'technique')->firstOrFail();
 
         $this->actingAs($user)->post(route('cvs.store'), [
             'title' => 'Second CV',
-            'template_id' => \App\Models\ResumeTemplate::query()->where('slug', 'classique')->value('id'),
+            'template_id' => ResumeTemplate::query()->where('slug', 'classique')->value('id'),
         ])->assertSessionHas('error');
 
         $this->assertSame(1, $user->resumes()->count());
@@ -84,7 +110,7 @@ class ResumeTest extends TestCase
 
     public function test_create_page_restores_the_template_catalog_when_it_is_empty(): void
     {
-        \App\Models\ResumeTemplate::query()->delete();
+        ResumeTemplate::query()->delete();
         $user = $this->makeUser();
 
         $this->actingAs($user)->get(route('cvs.create'))
@@ -92,13 +118,15 @@ class ResumeTest extends TestCase
             ->assertSee('Choisissez un modèle')
             ->assertSee('Moderne')
             ->assertSee('Classique')
-            ->assertSee('Étudiant')
-            ->assertSee('International')
+            ->assertSee('Bleu professionnel')
+            ->assertSee('Corporate')
+            ->assertSee('Exécutif')
+            ->assertSee('Élégant')
             ->assertSee('Inclus')
             ->assertSee('Premium')
             ->assertDontSee('Le champ template id est obligatoire.');
 
-        $this->assertSame(8, \App\Models\ResumeTemplate::query()->count());
+        $this->assertSame(8, ResumeTemplate::query()->count());
 
         $this->post(route('cvs.store'), ['title' => 'Sans modèle'])
             ->assertSessionHasErrors([
@@ -110,7 +138,7 @@ class ResumeTest extends TestCase
     {
         $user = $this->makeUser();
         $user->subscription()->delete();
-        $template = \App\Models\ResumeTemplate::query()->where('slug', 'moderne')->firstOrFail();
+        $template = ResumeTemplate::query()->where('slug', 'moderne')->firstOrFail();
 
         $this->actingAs($user)->get(route('cvs.create'))
             ->assertOk()
@@ -162,5 +190,32 @@ class ResumeTest extends TestCase
             ->assertSee('1')
             ->assertSee('Lettre locale')
             ->assertDontSee('CV d\'une autre personne');
+    }
+
+    public function test_the_create_page_preselects_the_preferred_template(): void
+    {
+        $user = $this->makeUser();
+        $preferences = $user->profile->preferences;
+        $preferences['default_template'] = 'classique';
+        $user->profile->forceFill(['preferences' => $preferences])->save();
+        $classique = ResumeTemplate::query()->where('slug', 'classique')->firstOrFail();
+
+        $this->actingAs($user)->get(route('cvs.create'))
+            ->assertOk()
+            ->assertSee('name="template_id" value="'.$classique->id.'" checked', false);
+    }
+
+    public function test_the_editor_can_remember_the_selected_template(): void
+    {
+        $user = $this->makeUser();
+        $resume = $this->makeResume($user);
+        $classique = ResumeTemplate::query()->where('slug', 'classique')->firstOrFail();
+
+        $this->actingAs($user)->postJson(route('cvs.prefer-template', $resume), [
+            'template_id' => $classique->id,
+        ])->assertOk()
+            ->assertJsonPath('successful', true);
+
+        $this->assertSame('classique', $user->profile->fresh()->preference('default_template'));
     }
 }

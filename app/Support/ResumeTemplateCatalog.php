@@ -13,14 +13,14 @@ class ResumeTemplateCatalog
         $technical = ['skills', 'experiences', 'projects', 'education', 'certifications', 'languages', 'interests', 'references'];
 
         return [
-            ['slug' => 'moderne', 'name' => 'Moderne', 'description' => 'Bandeau coloré et sections aérées, pour une lecture rapide.', 'audience' => 'Jeunes diplômés et profils polyvalents', 'is_premium' => false, 'sort_order' => 1, 'order' => $standard, 'primary' => '#2563EB', 'accent' => '#1F2937'],
-            ['slug' => 'classique', 'name' => 'Classique', 'description' => 'Mise en page centrée, serif, pour les contextes formels.', 'audience' => 'Candidatures institutionnelles', 'is_premium' => false, 'sort_order' => 2, 'order' => $standard, 'primary' => '#1F2937', 'accent' => '#2563EB'],
-            ['slug' => 'minimaliste', 'name' => 'Minimaliste', 'description' => 'Beaucoup d\'air, peu de décoration, le texte d\'abord.', 'audience' => 'Profils qui veulent une lecture directe', 'is_premium' => false, 'sort_order' => 3, 'order' => $standard, 'primary' => '#111827', 'accent' => '#6B7280'],
-            ['slug' => 'etudiant', 'name' => 'Étudiant', 'description' => 'La formation et les projets passent avant l\'expérience.', 'audience' => 'Étudiants et premiers emplois', 'is_premium' => false, 'sort_order' => 4, 'order' => $student, 'primary' => '#2563EB', 'accent' => '#10B981'],
-            ['slug' => 'experimente', 'name' => 'Professionnel expérimenté', 'description' => 'En-tête sombre et filet accentué, pour un parcours déjà long.', 'audience' => 'Cadres et profils confirmés', 'is_premium' => true, 'sort_order' => 5, 'order' => $standard, 'primary' => '#1F2937', 'accent' => '#F59E0B'],
-            ['slug' => 'technique', 'name' => 'Technique et informatique', 'description' => 'Compétences et projets mis en avant, style compact.', 'audience' => 'Développement, systèmes, données', 'is_premium' => true, 'sort_order' => 6, 'order' => $technical, 'primary' => '#0F172A', 'accent' => '#38BDF8'],
-            ['slug' => 'administratif', 'name' => 'Administratif', 'description' => 'Identité en tableau et sections linéaires, façon dossier.', 'audience' => 'Administration, secrétariat, gestion', 'is_premium' => true, 'sort_order' => 7, 'order' => $standard, 'primary' => '#1E3A8A', 'accent' => '#1F2937'],
-            ['slug' => 'international', 'name' => 'International', 'description' => 'Intitulés en français et en anglais, pour une lecture transfrontalière.', 'audience' => 'Candidatures hors du marché local', 'is_premium' => true, 'sort_order' => 8, 'order' => $standard, 'primary' => '#111827', 'accent' => '#2563EB'],
+            ['slug' => 'classique', 'name' => 'Classique', 'category' => 'classique', 'description' => 'Identité en tête, photo carrée et séparateurs fins sur une colonne.', 'audience' => 'Candidatures institutionnelles', 'is_premium' => false, 'sort_order' => 1, 'order' => $standard, 'primary' => '#1C1917', 'accent' => '#0F766E', 'font' => 'serif'],
+            ['slug' => 'minimaliste', 'name' => 'Minimaliste', 'category' => 'design', 'description' => 'Typographie aérée, photo ronde discrète et beaucoup de blanc.', 'audience' => 'Profils qui veulent une lecture directe', 'is_premium' => false, 'sort_order' => 2, 'order' => $standard, 'primary' => '#1C1917', 'accent' => '#A8A29E', 'font' => 'serif'],
+            ['slug' => 'moderne', 'name' => 'Moderne', 'category' => 'moderne', 'description' => 'Photo, métier, barre de couleur, puis les rubriques les unes sous les autres.', 'audience' => 'Profils polyvalents', 'is_premium' => false, 'sort_order' => 3, 'order' => $standard, 'primary' => '#0F766E', 'accent' => '#1C1917', 'font' => 'sans'],
+            ['slug' => 'technique', 'name' => 'Technique', 'category' => 'moderne', 'description' => 'Compétences, projets et certifications à gauche, expériences détaillées à droite.', 'audience' => 'Parcours techniques et polyvalents', 'is_premium' => true, 'sort_order' => 4, 'order' => $technical, 'primary' => '#134E4A', 'accent' => '#0F766E', 'font' => 'sans'],
+            ['slug' => 'experimente', 'name' => 'Corporate', 'category' => 'classique', 'description' => 'Colonne sombre, photo rectangulaire, coordonnées et compétences.', 'audience' => 'Profils confirmés', 'is_premium' => true, 'sort_order' => 5, 'order' => $standard, 'primary' => '#1C1917', 'accent' => '#0F766E', 'font' => 'sans'],
+            ['slug' => 'international', 'name' => 'Élégant', 'category' => 'design', 'description' => 'Photo ronde, bandeau clair et deux colonnes.', 'audience' => 'Présentations soignées', 'is_premium' => true, 'sort_order' => 6, 'order' => $standard, 'primary' => '#1C1917', 'accent' => '#0F766E', 'font' => 'serif'],
+            ['slug' => 'etudiant', 'name' => 'Bleu professionnel', 'category' => 'original', 'description' => 'Colonne bleue, photo en haut et expériences dans la zone principale.', 'audience' => 'Premiers emplois et profils visuels', 'is_premium' => false, 'sort_order' => 7, 'order' => $student, 'primary' => '#1E3A8A', 'accent' => '#1E40AF', 'font' => 'sans'],
+            ['slug' => 'administratif', 'name' => 'Exécutif', 'category' => 'classique', 'description' => 'Bandeau sombre, photo ronde et parcours en deux colonnes pour un poste de responsabilité.', 'audience' => 'Cadres et responsables', 'is_premium' => true, 'sort_order' => 8, 'order' => $standard, 'primary' => '#1C1917', 'accent' => '#B45309', 'font' => 'serif'],
         ];
     }
 
@@ -61,6 +61,8 @@ class ResumeTemplateCatalog
             'default_theme' => [
                 'primary' => $template['primary'],
                 'accent' => $template['accent'],
+                'font' => $template['font'],
+                'size' => 'm',
             ],
         ];
     }

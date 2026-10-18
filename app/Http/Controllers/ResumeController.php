@@ -7,9 +7,11 @@ use App\Http\Requests\ResumeFormRequest;
 use App\Models\Resume;
 use App\Models\ResumeTemplate;
 use App\Services\Billing\QuotaService;
+use App\Services\Documents\ResumePhoto;
 use App\Services\Documents\ResumePresenter;
 use App\Services\Resume\ResumeWriter;
 use App\Support\ResumeContent;
+use App\Support\ResumeReadiness;
 use Illuminate\Http\Request;
 
 class ResumeController extends Controller
@@ -36,6 +38,7 @@ class ResumeController extends Controller
             'plan' => $quota->plan($user),
             'resumeCount' => $user->resumes()->count(),
             'defaultTitle' => $user->profile?->first_name ? 'CV de '.$user->profile->first_name : 'Mon CV',
+            'preferredSlug' => $request->query('modele') ?: $user->profile?->preference('default_template'),
         ]);
     }
 
@@ -58,7 +61,49 @@ class ResumeController extends Controller
             return $this->fail($request, $exception, route('cvs.create'));
         }
 
-        return redirect()->route('cvs.edit', $resume)->with('success', 'Votre CV a été créé. Les informations du profil ont été reprises lorsqu\'elles existaient.');
+        return redirect()->route('cvs.edit', ['resume' => $resume, 'wizard' => 1, 'wizard_step' => 1])->with('success', 'Votre CV est créé. Complétez-le étape par étape. L\'aperçu A4 se met à jour après l\'enregistrement.');
+    }
+
+    public function preferTemplate(Request $request, Resume $resume)
+    {
+        $this->authorize('update', $resume);
+
+        $data = $request->validate([
+            'template_id' => ['nullable', 'integer'],
+        ]);
+
+        $template = filled($data['template_id'] ?? null)
+            ? ResumeTemplate::query()->where('is_active', true)->find($data['template_id'])
+            : $resume->template;
+
+        if (! $template) {
+            return $this->preferResponse($request, false, 'Ce modèle n\'est pas disponible.');
+        }
+
+        try {
+            app(QuotaService::class)->assertCanUseTemplate($request->user(), $template->is_premium);
+        } catch (PlanLimitException $exception) {
+            return $this->preferResponse($request, false, $exception->getMessage());
+        }
+
+        $profile = $request->user()->profile()->firstOrCreate(['user_id' => $request->user()->id]);
+        $preferences = $profile->preferences ?? [];
+        $preferences['default_template'] = $template->slug;
+        $profile->forceFill(['preferences' => $preferences])->save();
+
+        return $this->preferResponse($request, true, 'Ce modèle sera proposé pour vos prochains CV.');
+    }
+
+    private function preferResponse(Request $request, bool $successful, string $message)
+    {
+        if ($request->expectsJson()) {
+            return response()->json([
+                'successful' => $successful,
+                'message' => $message,
+            ], $successful ? 200 : 422);
+        }
+
+        return back()->with($successful ? 'success' : 'error', $message);
     }
 
     public function edit(Request $request, Resume $resume)
@@ -66,12 +111,18 @@ class ResumeController extends Controller
         $this->authorize('update', $resume);
         $resume->load('template');
 
+        $form = $this->formState($resume, $request);
+
         return view('resumes.edit', [
             'resume' => $resume,
             'templates' => ResumeTemplate::available(),
             'quota' => app(QuotaService::class),
-            'form' => $this->formState($resume, $request),
+            'form' => $form,
+            'checks' => ResumeReadiness::checks($form),
+            'credits' => app(QuotaService::class)->creditsRemaining($request->user()),
             'versions' => $resume->versions()->latest()->limit(12)->get(),
+            'wizard' => ! $request->boolean('complet'),
+            'wizardStep' => max(1, min(6, (int) $request->query('wizard_step', 1))),
         ]);
     }
 
@@ -93,7 +144,7 @@ class ResumeController extends Controller
             ]);
         }
 
-        return redirect()->route('cvs.edit', $resume)->with('success', 'CV enregistré.');
+        return $this->backToEditor($request, $resume)->with('success', 'CV enregistré.');
     }
 
     public function delete(Resume $resume)
@@ -126,13 +177,43 @@ class ResumeController extends Controller
         return redirect()->route('cvs.edit', $copy)->with('success', 'Une copie du CV a été créée.');
     }
 
-    public function preview(Resume $resume, ResumePresenter $presenter)
+    public function photo(Request $request, Resume $resume, ResumePhoto $photos)
+    {
+        $this->authorize('update', $resume);
+        $data = $request->validate([
+            'photo' => ['required', 'file', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
+        ], [
+            'photo.required' => 'Choisissez une photo.',
+            'photo.image' => 'Le fichier doit être une image.',
+            'photo.mimes' => 'Utilisez une photo JPEG, PNG ou WebP.',
+            'photo.max' => 'La photo dépasse 5 Mo.',
+        ]);
+
+        $resume->forceFill([
+            'photo_path' => $photos->store($resume, $data['photo']),
+        ])->save();
+
+        return $this->backToEditor($request, $resume)->with('success', 'La photo est enregistrée. Elle apparaît dans l\'aperçu, le PDF et le document Word.');
+    }
+
+    public function destroyPhoto(Request $request, Resume $resume, ResumePhoto $photos)
+    {
+        $this->authorize('update', $resume);
+        $photos->delete($resume->photo_path);
+        $resume->forceFill(['photo_path' => null])->save();
+
+        return $this->backToEditor($request, $resume)->with('success', 'La photo a été retirée. Les initiales la remplacent.');
+    }
+
+    public function preview(Request $request, Resume $resume, ResumePresenter $presenter)
     {
         $this->authorize('view', $resume);
 
         return view('resumes.paper', [
             'document' => $presenter->present($resume),
             'title' => $resume->title,
+            'screen' => true,
+            'embedded' => $request->boolean('cadre'),
         ]);
     }
 
@@ -140,7 +221,7 @@ class ResumeController extends Controller
     {
         $this->authorize('update', $resume);
         $data = $request->validate([
-            'target' => ['required', 'in:summary,experience,skill,section_order'],
+            'target' => ['required', 'in:summary,headline,experience,education,skill,section_order'],
             'value' => ['nullable', 'string', 'max:4000'],
             'index' => ['nullable', 'integer', 'min:0'],
             'order' => ['nullable', 'array'],
@@ -156,6 +237,20 @@ class ResumeController extends Controller
         return redirect()->route('cvs.edit', $resume)->with('success', 'La proposition confirmée a été appliquée. La version précédente est conservée.');
     }
 
+    private function backToEditor(Request $request, Resume $resume)
+    {
+        $parameters = ['resume' => $resume];
+
+        if ($request->boolean('complet')) {
+            $parameters['complet'] = 1;
+        } elseif ($request->boolean('wizard')) {
+            $parameters['wizard'] = 1;
+            $parameters['wizard_step'] = max(1, min(6, (int) $request->input('wizard_step', 1)));
+        }
+
+        return redirect()->route('cvs.edit', $parameters);
+    }
+
     private function formState(Resume $resume, Request $request): array
     {
         $content = $resume->content ?? ResumeContent::emptyContent();
@@ -164,7 +259,7 @@ class ResumeController extends Controller
             'summary' => old('summary', $resume->summary),
             'template_id' => old('template_id', $resume->template_id),
             'personal' => old('personal', $resume->personal ?? ResumeContent::emptyPersonal()),
-            'theme' => old('theme', $resume->theme ?? ['primary' => '#2563EB', 'accent' => '#1F2937']),
+            'theme' => ResumeContent::normalizeTheme(old('theme', $resume->theme), $resume->template?->default_theme ?? []),
             'section_order' => old('section_order', $resume->section_order ?? ResumeContent::defaultOrder()),
             'status' => old('status', $resume->status),
         ];

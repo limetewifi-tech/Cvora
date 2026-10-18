@@ -84,13 +84,29 @@ class AiRouter implements AiProvider
     {
         $name = $this->fallbackName();
 
-        if ($name === '' || $name === $this->driverName() || $name === 'fake' || ! in_array($name, self::SUPPORTED, true)) {
-            return null;
+        if ($name !== '') {
+            if ($name === $this->driverName() || $name === 'fake' || ! in_array($name, self::SUPPORTED, true)) {
+                return null;
+            }
+
+            $provider = $this->resolve($name);
+
+            return $provider->configured() ? $provider : null;
         }
 
-        $provider = $this->resolve($name);
+        foreach (self::SUPPORTED as $candidate) {
+            if ($candidate === $this->driverName()) {
+                continue;
+            }
 
-        return $provider->configured() ? $provider : null;
+            $provider = $this->resolve($candidate);
+
+            if ($provider->configured()) {
+                return $provider;
+            }
+        }
+
+        return null;
     }
 
     private function resolve(string $name): AiProvider

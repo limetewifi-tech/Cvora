@@ -8,6 +8,7 @@ use App\Models\ResumeTemplate;
 use App\Models\ResumeVersion;
 use App\Models\User;
 use App\Services\Billing\QuotaService;
+use App\Services\Documents\ResumePhoto;
 use App\Support\ResumeContent;
 use App\Support\ResumeTemplateCatalog;
 use Illuminate\Support\Facades\DB;
@@ -61,6 +62,7 @@ class ResumeWriter
         foreach (ResumeContent::sections() as $section) {
             if (is_array($present) && ! in_array($section, $present, true)) {
                 $raw[$section] = $existing[$section] ?? [];
+
                 continue;
             }
 
@@ -91,15 +93,7 @@ class ResumeWriter
     public function createFromConfirmed(User $user, array $input): Resume
     {
         $this->quota->assertCanCreateResume($user);
-        ResumeTemplateCatalog::installMissing();
-        $template = ResumeTemplate::query()->active()->where('is_premium', false)->orderBy('sort_order')->first()
-            ?? ResumeTemplate::query()->active()->orderBy('sort_order')->first();
-
-        if (! $template) {
-            throw new PlanLimitException('Aucun modèle n\'est disponible.');
-        }
-
-        $this->guardTemplate($user, $template);
+        $template = $this->templateForImport($user, $input);
 
         return $user->resumes()->create([
             'template_id' => $template->id,
@@ -118,12 +112,17 @@ class ResumeWriter
     {
         $this->snapshot($resume, 'safety', 'Avant importation confirmée');
 
-        return $this->update($resume, array_merge($input, [
+        $payload = array_merge($input, [
             'lock_version' => $resume->fresh()->lock_version,
-            'template_id' => $resume->template_id,
             'sections_present' => ResumeContent::sections(),
             'title' => $input['title'] ?? $resume->title,
-        ]));
+        ]);
+
+        if (! filled($payload['template_id'] ?? null)) {
+            $payload['template_id'] = $resume->template_id;
+        }
+
+        return $this->update($resume, $payload);
     }
 
     public function duplicate(Resume $resume): Resume
@@ -135,7 +134,7 @@ class ResumeWriter
             $this->guardTemplate($resume->user, $template);
         }
 
-        return $resume->user->resumes()->create([
+        $copy = $resume->user->resumes()->create([
             'template_id' => $resume->template_id,
             'title' => ResumeContent::clean('Copie de '.$resume->title, 160),
             'status' => 'draft',
@@ -147,6 +146,14 @@ class ResumeWriter
             'theme' => $resume->theme,
             'lock_version' => 0,
         ]);
+
+        $photo = app(ResumePhoto::class)->copy($resume->photo_path, $copy);
+
+        if ($photo !== null) {
+            $copy->forceFill(['photo_path' => $photo])->save();
+        }
+
+        return $copy->refresh();
     }
 
     public function snapshot(Resume $resume, string $kind, ?string $note = null): ResumeVersion
@@ -207,8 +214,15 @@ class ResumeWriter
 
         if ($target === 'summary') {
             $resume->summary = ResumeContent::clean($payload['value'] ?? '', 4000, true);
+        } elseif ($target === 'headline') {
+            $personal = is_array($resume->personal) ? $resume->personal : ResumeContent::emptyPersonal();
+            $personal['headline'] = ResumeContent::clean($payload['value'] ?? '', 160);
+            $resume->personal = ResumeContent::normalizePersonal($personal);
         } elseif ($target === 'experience' && isset($content['experiences'][(int) ($payload['index'] ?? -1)])) {
             $content['experiences'][(int) $payload['index']]['description'] = ResumeContent::clean($payload['value'] ?? '', 4000, true);
+            $resume->content = $content;
+        } elseif ($target === 'education' && isset($content['education'][(int) ($payload['index'] ?? -1)])) {
+            $content['education'][(int) $payload['index']]['description'] = ResumeContent::clean($payload['value'] ?? '', 4000, true);
             $resume->content = $content;
         } elseif ($target === 'skill' && isset($content['skills'][(int) ($payload['index'] ?? -1)])) {
             $content['skills'][(int) $payload['index']]['name'] = ResumeContent::clean($payload['value'] ?? '', 200);
@@ -243,6 +257,27 @@ class ResumeWriter
         if (! array_key_exists('lock_version', $input) || (int) $input['lock_version'] !== (int) $resume->lock_version) {
             throw new PlanLimitException('Ce CV a été modifié entre-temps. Rechargez la page avant d\'enregistrer.');
         }
+    }
+
+    private function templateForImport(User $user, array $input): ResumeTemplate
+    {
+        ResumeTemplateCatalog::installMissing();
+        $template = null;
+
+        if (filled($input['template_id'] ?? null)) {
+            $template = ResumeTemplate::query()->where('is_active', true)->find($input['template_id']);
+        }
+
+        $template ??= ResumeTemplate::query()->active()->where('is_premium', false)->orderBy('sort_order')->first()
+            ?? ResumeTemplate::query()->active()->orderBy('sort_order')->first();
+
+        if (! $template) {
+            throw new PlanLimitException('Aucun modèle n\'est disponible.');
+        }
+
+        $this->guardTemplate($user, $template);
+
+        return $template;
     }
 
     private function templateFromInput(User $user, array $input, Resume $resume): ResumeTemplate

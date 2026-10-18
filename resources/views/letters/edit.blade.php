@@ -45,6 +45,14 @@
                     </select>
                 </div>
                 <div class="col-sm-6">
+                    <label class="form-label">Modèle A4</label>
+                    <select class="form-select" name="layout">
+                        @foreach (\App\Support\LetterLayouts::all() as $value => $layout)
+                            <option value="{{ $value }}" @selected(old('layout', $letter->layout ?: 'classique') === $value)>{{ $layout['name'] }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="col-sm-6">
                     <label class="form-label">Longueur</label>
                     <select class="form-select" name="length">
                         @foreach (['courte' => 'Courte', 'standard' => 'Standard', 'detaillee' => 'Détaillée'] as $value => $label)
@@ -78,6 +86,18 @@
             <button class="btn btn-primary" type="submit" data-loading>Enregistrer</button>
         </div>
     </form>
+    @if ($letter->exists)
+        <section class="card mt-4 overflow-hidden">
+            <div class="d-flex align-items-center justify-content-between gap-2 border-bottom px-3 py-2">
+                <p class="mb-0 small fw-semibold">Aperçu A4</p>
+                <a class="small" href="{{ route('letters.preview', $letter) }}" target="_blank" rel="noopener">Ouvrir</a>
+            </div>
+            <div class="cvora-a4-frame">
+                <iframe title="Aperçu A4 de la lettre" src="{{ route('letters.preview', $letter) }}?cadre=1"></iframe>
+            </div>
+            <p class="small text-secondary mb-0 px-3 py-2">Page A4, 210 × 297 mm. L'aperçu se met à jour après l'enregistrement.</p>
+        </section>
+    @endif
     @if ($letter->exists)
         <form method="POST" action="{{ route('assistant.letter') }}" class="mt-3" data-ai-form>
             @csrf

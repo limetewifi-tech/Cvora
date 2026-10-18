@@ -20,13 +20,22 @@ class PublicSiteTest extends TestCase
     {
         $this->get(route('home'))
             ->assertOk()
-            ->assertSee('Des candidatures qui ouvrent des portes.')
-            ->assertSee('Votre talent mérite le meilleur CV.')
+            ->assertSee('Choisissez un modèle, puis remplissez votre CV.')
+            ->assertSee('CV classiques')
             ->assertSee('Gratuit')
             ->assertSee('15 000')
             ->assertDontSee('10 000 utilisateurs');
 
-        $this->get(route('templates.index'))->assertOk()->assertSee('Moderne')->assertSee('International');
+        $this->get(route('templates.index'))
+            ->assertOk()
+            ->assertSee('Moderne')
+            ->assertSee('Élégant')
+            ->assertSee('Technique')
+            ->assertSee('Choisir ce modèle')
+            ->assertSee('Aperçu détaillé')
+            ->assertSee('data-gallery-filter="original"', false)
+            ->assertSee('data-category="classique"', false)
+            ->assertSee('miniature=1', false);
         $this->get(route('templates.example', 'moderne'))->assertOk()->assertSee('données fictives');
         $this->get(route('pricing'))->assertOk()->assertSee('Pro');
         $this->get(route('resources'))->assertOk();

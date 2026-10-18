@@ -8,6 +8,8 @@ use App\Models\CoverLetterVersion;
 use App\Services\Billing\QuotaService;
 use App\Services\Documents\DocxExporter;
 use App\Services\Documents\PdfExporter;
+use App\Support\LetterLayouts;
+use App\Support\LetterSheet;
 use App\Support\ResumeContent;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -20,15 +22,19 @@ class CoverLetterController extends Controller
         return view('letters.index', [
             'letters' => $request->user()->coverLetters()->latest('updated_at')->get(),
             'quota' => app(QuotaService::class),
+            'layouts' => LetterLayouts::all(),
         ]);
     }
 
     public function create(Request $request, QuotaService $quota)
     {
+        $layout = (string) $request->query('modele', 'classique');
+
         return view('letters.edit', $this->editorData($request, new CoverLetter([
             'title' => 'Lettre de motivation',
             'tone' => 'professionnel',
             'length' => 'standard',
+            'layout' => LetterLayouts::has($layout) ? $layout : 'classique',
             'body' => '',
             'lock_version' => 0,
         ]), $quota));
@@ -113,11 +119,36 @@ class CoverLetterController extends Controller
             'position' => $snapshot['position'] ?? null,
             'tone' => $snapshot['tone'] ?? $letter->tone,
             'length' => $snapshot['length'] ?? $letter->length,
+            'layout' => $snapshot['layout'] ?? $letter->layout,
             'body' => $snapshot['body'] ?? '',
             'lock_version' => $letter->lock_version + 1,
         ])->save();
 
         return redirect()->route('letters.edit', $letter)->with('success', 'La version de la lettre a été restaurée.');
+    }
+
+    public function sample(string $layout)
+    {
+        abort_unless(LetterLayouts::has($layout), 404);
+
+        return view('letters.paper', [
+            'sheet' => LetterSheet::example($layout),
+            'title' => 'Exemple de lettre — '.LetterLayouts::all()[$layout]['name'],
+            'screen' => true,
+            'embedded' => true,
+        ]);
+    }
+
+    public function preview(Request $request, CoverLetter $letter)
+    {
+        $this->authorize('view', $letter);
+
+        return view('letters.paper', [
+            'sheet' => LetterSheet::from($letter),
+            'title' => $letter->title,
+            'screen' => true,
+            'embedded' => $request->boolean('cadre'),
+        ]);
     }
 
     public function export(Request $request, CoverLetter $letter, string $format, QuotaService $quota, PdfExporter $pdf, DocxExporter $docx)
@@ -154,6 +185,7 @@ class CoverLetterController extends Controller
             'position' => ['nullable', 'string', 'max:160'],
             'tone' => ['required', 'in:classique,professionnel,direct,debutant'],
             'length' => ['required', 'in:courte,standard,detaillee'],
+            'layout' => ['nullable', 'in:'.implode(',', LetterLayouts::keys())],
             'body' => ['nullable', 'string', 'max:12000'],
             'resume_id' => ['nullable', 'integer', Rule::exists('resumes', 'id')->where('user_id', $request->user()->id)],
             'job_offer_id' => ['nullable', 'integer', Rule::exists('job_offers', 'id')->where('user_id', $request->user()->id)],
@@ -163,7 +195,10 @@ class CoverLetterController extends Controller
             $rules['lock_version'] = ['required', 'integer'];
         }
 
-        return $request->validate($rules);
+        $data = $request->validate($rules);
+        $data['layout'] = LetterLayouts::has((string) ($data['layout'] ?? '')) ? $data['layout'] : 'classique';
+
+        return $data;
     }
 
     private function guardLinks(Request $request, array $data): void
@@ -193,7 +228,7 @@ class CoverLetterController extends Controller
                 'version_number' => $number,
                 'kind' => $kind,
                 'note' => ResumeContent::clean($note, 160),
-                'snapshot' => $letter->only(['title', 'company', 'position', 'tone', 'length', 'body']),
+                'snapshot' => $letter->only(['title', 'company', 'position', 'tone', 'length', 'layout', 'body']),
             ]);
         });
     }

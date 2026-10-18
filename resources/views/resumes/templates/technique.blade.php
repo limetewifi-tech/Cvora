@@ -1,12 +1,30 @@
-<div class="mast">
-    <h1 style="font-size:18pt;">{{ $document['name'] }}</h1>
-    <p>{{ $document['headline'] }}</p>
-    <p style="margin-top:6px;font-size:9pt;">{{ implode(' | ', $document['contact']) }}</p>
-</div>
-<div class="pad">
-    @php $skills = collect($document['sections'])->firstWhere('key', 'skills'); @endphp
-    @if ($skills)
-        <div class="section"><h2 style="color:#2563EB;">Compétences</h2><p>@foreach ($skills['items'] as $item)<span class="tag">{{ $item['primary'] }}</span>@endforeach</p></div>
-    @endif
-    @include('resumes.templates._flow', ['skip' => ['skills'], 'asTags' => false])
+<div class="sheet-technical">
+    <table class="identity tech-head">
+        <tr>
+            <td class="photo-cell">@include('resumes.templates._photo')</td>
+            <td>
+                <h1>{{ $document['name'] }}</h1>
+                @if ($document['headline'] !== '')<p class="role">{{ $document['headline'] }}</p>@endif
+                @if ($document['contact'] !== [])<p class="meta">{{ implode(' · ', $document['contact']) }}</p>@endif
+            </td>
+        </tr>
+    </table>
+    <table class="split">
+        <tr>
+            <td class="narrow">
+                @include('resumes.templates._blocks', [
+                    'keys' => ['skills', 'projects', 'certifications', 'languages', 'interests'],
+                    'variant' => 'tech',
+                    'asLevels' => true,
+                ])
+            </td>
+            <td>
+                @include('resumes.templates._blocks', [
+                    'keys' => ['experiences', 'education', 'references'],
+                    'variant' => 'rule',
+                    'showSummary' => true,
+                ])
+            </td>
+        </tr>
+    </table>
 </div>

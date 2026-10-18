@@ -7,6 +7,8 @@ use App\Support\ResumeContent;
 
 class ResumePresenter
 {
+    public function __construct(private ResumePhoto $photos) {}
+
     public function present(Resume $resume): array
     {
         $resume->loadMissing('template');
@@ -32,24 +34,65 @@ class ResumePresenter
             ];
         }
 
-        $contact = array_values(array_filter([
-            $personal['email'],
-            $personal['phone'],
-            trim($personal['address'].' '.$personal['city'].' '.$personal['country']),
-            $personal['linkedin'],
-            $personal['website'],
+        $place = trim(implode(', ', array_filter([$personal['address'], $personal['city'], $personal['country']])));
+        $lines = array_values(array_filter([
+            $this->line('E-mail', $personal['email']),
+            $this->line('Téléphone', $personal['phone']),
+            $this->line('Adresse', $place),
+            $this->line('LinkedIn', $personal['linkedin']),
+            $this->line('Site', $personal['website']),
         ]));
+        $slug = $resume->template?->slug ?? 'moderne';
+        $layout = ResumePhoto::layout($slug);
+        $shape = ResumePhoto::shape($layout);
+        $name = trim($personal['first_name'].' '.$personal['last_name']) ?: 'Prénom Nom';
+        $initials = $this->initials($name);
+        $photo = $this->photos->dataUri($resume->photo_path, $shape, ResumePhoto::backdrop($layout, $theme['primary']));
 
         return [
-            'slug' => $resume->template?->slug ?? 'moderne',
-            'name' => trim($personal['first_name'].' '.$personal['last_name']) ?: 'Prénom Nom',
+            'slug' => $slug,
+            'layout' => $layout,
+            'name' => $name,
+            'initials' => $initials,
             'headline' => $personal['headline'],
-            'contact' => $contact,
+            'contact' => array_column($lines, 'value'),
+            'lines' => $lines,
             'summary' => trim((string) $resume->summary),
             'sections' => $sections,
+            'by' => collect($sections)->keyBy('key')->all(),
+            'photo' => $photo,
+            'mark' => $photo ?? $this->photos->monogramUri($initials, $shape, $layout, $theme['primary']),
+            'photo_shape' => $shape,
             'primary' => $theme['primary'],
             'accent' => $theme['accent'],
+            'font' => $theme['font'],
+            'size' => $theme['size'],
         ];
+    }
+
+    /**
+     * @return array{label: string, value: string}|null
+     */
+    private function line(string $label, string $value): ?array
+    {
+        $value = trim($value);
+
+        return $value === '' ? null : ['label' => $label, 'value' => $value];
+    }
+
+    private function initials(string $name): string
+    {
+        $initials = '';
+
+        foreach (preg_split('/\s+/u', trim($name)) ?: [] as $part) {
+            if ($part !== '') {
+                $initials .= mb_strtoupper(mb_substr($part, 0, 1));
+            }
+        }
+
+        $initials = mb_substr($initials, 0, 2);
+
+        return $initials !== '' ? $initials : 'CV';
     }
 
     private function item(string $section, array $item): array

@@ -12,6 +12,49 @@
         @endif
         Un crédit est pris au début de l'appel et rendu si le fournisseur échoue. Les propositions ne modifient rien tant que vous ne les appliquez pas dans l'éditeur.
     </p>
+    <p class="text-secondary">Décrivez le résultat voulu. L'assistant agit sur le CV choisi et vous montre un texte à accepter, modifier ou ignorer.</p>
+    @if ($resumes->isEmpty())
+        @include('components.empty', ['icon' => 'bi-stars', 'title' => 'Créez d\'abord un CV pour donner un contexte à l\'assistant.', 'action' => 'Commencer', 'href' => route('start.index')])
+    @else
+        <form method="POST" action="{{ route('assistant.ask') }}" class="card mt-3 needs-validation" novalidate data-ai-form>
+            @csrf
+            <div class="card-body vstack gap-3">
+                <div>
+                    <label class="form-label" for="ask_resume">CV concerné</label>
+                    <select class="form-select" id="ask_resume" name="resume_id" required>
+                        @foreach ($resumes as $resume)
+                            <option value="{{ $resume->id }}" @selected((string) old('resume_id', $selectedResumeId) === (string) $resume->id)>{{ $resume->title }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div>
+                    <label class="form-label" for="ask_message">Demande</label>
+                    <textarea class="form-control cvora-textarea" id="ask_message" name="message" required maxlength="2000" placeholder="Exemples : Rends mon résumé plus professionnel. Corrige les fautes. Identifie les points faibles. Crée une lettre de motivation.">{{ old('message') }}</textarea>
+                </div>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label" for="ask_position">Poste, pour une lettre</label>
+                        <input class="form-control" id="ask_position" name="position" value="{{ old('position') }}" maxlength="160">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label" for="ask_company">Organisation, pour une lettre</label>
+                        <input class="form-control" id="ask_company" name="company" value="{{ old('company') }}" maxlength="160">
+                    </div>
+                </div>
+                <div>
+                    <label class="form-label" for="ask_offer">Texte de l'offre, si vous voulez adapter le CV</label>
+                    <textarea class="form-control" id="ask_offer" name="offer" rows="4" maxlength="8000">{{ old('offer') }}</textarea>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" name="authorize_resume" id="authorize_ask" value="1" required @checked(old('authorize_resume'))>
+                    <label class="form-check-label" for="authorize_ask">J'autorise l'utilisation de ce CV pour cette demande.</label>
+                    <div class="invalid-feedback">Autorisez l'utilisation du CV.</div>
+                </div>
+                <button class="btn btn-primary align-self-start" type="submit">Lancer</button>
+                <p class="small text-secondary mb-0">Une demande qui reformule ou corrige réserve un crédit. Repérer les manques n'en utilise pas. Le CV change seulement avec « Appliquer au CV ».</p>
+            </div>
+        </form>
+    @endif
     <ul class="list-unstyled vstack gap-2 mt-3">
         @foreach ($providers as $name => $provider)
             <li class="card"><div class="card-body py-3">{{ $name }} · {{ ['configured' => 'configuré', 'incomplete' => 'incomplet', 'absent' => 'non configuré'][$provider['state']] }} · clé {{ $provider['key_present'] ? 'présente' : 'absente' }} · modèle {{ $provider['model'] !== '' ? $provider['model'] : 'absent' }}</div></li>
@@ -30,17 +73,11 @@
         <p class="small text-secondary mt-3 mb-0">Cet abonnement ne prévoit aucun crédit IA. Un appel sera refusé.</p>
     @endif
     @if (session('proposal'))
-        <section class="card mt-3">
-            <div class="card-body">
-                <h2 class="h5">Proposition</h2>
-                @if (! session('proposal.successful'))<p>{{ session('proposal.error') }}</p>@endif
-                <pre class="mb-0">{{ json_encode(session('proposal.data'), JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE) }}</pre>
-                @foreach (session('proposal.missing') ?? [] as $missing)<p class="text-warning-emphasis mb-0">Information manquante : {{ $missing }}</p>@endforeach
-                @foreach (session('proposal.warnings') ?? [] as $warning)<p class="mb-0">{{ $warning }}</p>@endforeach
-            </div>
-        </section>
+        @include('assistant.result')
     @endif
-    <div class="row g-3 mt-2">
+    <details class="mt-4">
+        <summary class="fw-semibold">Outils séparés</summary>
+        <div class="row g-3 mt-2">
         <div class="col-lg-6">
             <form method="POST" action="{{ route('assistant.summary') }}" class="card h-100" data-ai-form>
                 @csrf
@@ -162,5 +199,6 @@
             </form>
         </div>
     </div>
-    <p class="mt-3"><a href="{{ route('studio.index') }}">Ouvrir le Studio CV pour comparer une offre</a></p>
+        <p class="mt-3"><a href="{{ route('studio.index') }}">Ouvrir le Studio CV pour comparer une offre</a></p>
+    </details>
 @endsection

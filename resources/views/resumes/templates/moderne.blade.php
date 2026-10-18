@@ -1,6 +1,14 @@
-<div class="mast">
-    <h1 style="font-size:22pt;">{{ $document['name'] }}</h1>
-    @if ($document['headline'])<p>{{ $document['headline'] }}</p>@endif
-    @if ($document['contact'])<p style="margin-top:8px;font-size:10pt;">{{ implode(' · ', $document['contact']) }}</p>@endif
+<div class="sheet-modern">
+    <table class="identity">
+        <tr>
+            <td class="photo-cell">@include('resumes.templates._photo')</td>
+            <td>
+                <h1>{{ $document['name'] }}</h1>
+                @if ($document['headline'] !== '')<p class="role">{{ $document['headline'] }}</p>@endif
+                @if ($document['contact'] !== [])<p class="meta">{{ implode(' · ', $document['contact']) }}</p>@endif
+            </td>
+        </tr>
+    </table>
+    <div class="color-bar"></div>
+    @include('resumes.templates._blocks', ['keys' => array_column($document['sections'], 'key'), 'variant' => 'rule', 'showSummary' => true])
 </div>
-<div class="pad">@include('resumes.templates._flow')</div>
