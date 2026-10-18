@@ -136,6 +136,23 @@ if (form) {
 
     form.addEventListener('input', scheduleFromField);
     form.addEventListener('change', scheduleFromField);
+    document.querySelectorAll('[form="resume-form"]').forEach((field) => {
+        field.addEventListener('input', schedule);
+        field.addEventListener('change', schedule);
+    });
+    document.querySelectorAll('[data-theme-swatch]').forEach((swatch) => {
+        swatch.addEventListener('click', () => {
+            const color = document.querySelector('[name="theme[primary]"]');
+
+            if (!color) {
+                return;
+            }
+
+            color.value = swatch.dataset.themeSwatch;
+            color.dispatchEvent(new Event('input', { bubbles: true }));
+            schedule();
+        });
+    });
     form.addEventListener('submit', () => {
         generation++;
         clearTimeout(timer);

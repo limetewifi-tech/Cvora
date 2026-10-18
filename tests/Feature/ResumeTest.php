@@ -47,6 +47,31 @@ class ResumeTest extends TestCase
         $this->assertDatabaseMissing('resumes', ['id' => $resume->id]);
     }
 
+    public function test_changing_the_template_keeps_the_text_and_only_changes_the_layout(): void
+    {
+        $user = $this->makeUser('premium');
+        $resume = $this->makeResume($user);
+        $lateral = \App\Models\ResumeTemplate::query()->where('slug', 'experimente')->firstOrFail();
+
+        $this->actingAs($user)->put(route('cvs.update', $resume), $this->resumeForm($resume, [
+            'template_id' => $lateral->id,
+            'summary' => 'Analyste à Kinshasa.',
+            'theme' => ['primary' => '#1C1917', 'accent' => '#0F766E', 'font' => 'serif', 'size' => 'l'],
+        ]))->assertRedirect();
+
+        $resume->refresh();
+        $this->assertSame($lateral->id, $resume->template_id);
+        $this->assertSame('Analyste à Kinshasa.', $resume->summary);
+        $this->assertSame('Banque exemple', $resume->content['experiences'][0]['company']);
+
+        $this->get(route('cvs.preview', $resume))
+            ->assertOk()
+            ->assertSee('DejaVu Serif', false)
+            ->assertSee('12pt', false)
+            ->assertSee('layout-side', false)
+            ->assertSee('Analyste à Kinshasa.');
+    }
+
     public function test_stale_autosave_is_rejected(): void
     {
         $user = $this->makeUser();
@@ -93,8 +118,8 @@ class ResumeTest extends TestCase
             ->assertSee('Choisissez un modèle')
             ->assertSee('Moderne')
             ->assertSee('Classique')
-            ->assertSee('Étudiant')
-            ->assertSee('International')
+            ->assertSee('Créatif')
+            ->assertSee('Élégant')
             ->assertSee('Inclus')
             ->assertSee('Premium')
             ->assertDontSee('Le champ template id est obligatoire.');

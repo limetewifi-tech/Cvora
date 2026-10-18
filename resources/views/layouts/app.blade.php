@@ -17,21 +17,19 @@
                 <nav class="nav flex-column gap-1" aria-label="Navigation principale">
                     @php
                         $primary = [
-                            ['dashboard', 'Accueil', 'dashboard', 'bi-grid'],
-                            ['start.index', 'Commencer', 'start.*', 'bi-signpost'],
+                            ['templates.index', 'Modèles', 'templates.*', 'bi-grid-3x3-gap'],
                             ['cvs.index', 'Mes CV', ['cvs.*', 'imports.*'], 'bi-file-earmark-text'],
                             ['letters.index', 'Lettres', 'letters.*', 'bi-envelope-paper'],
                             ['assistant.index', 'Assistant', 'assistant.*', 'bi-stars'],
-                            ['applications.index', 'Candidatures', 'applications.*', 'bi-briefcase'],
-                            ['profile.edit', 'Profil', 'profile.*', 'bi-person'],
-                            ['settings.edit', 'Paramètres', 'settings.*', 'bi-gear'],
                         ];
                         $secondary = [
+                            ['dashboard', 'Tableau de bord', 'dashboard', 'bi-house'],
                             ['imports.create', 'Importer un CV', 'imports.*', 'bi-upload'],
                             ['studio.index', 'Adapter à une offre', 'studio.*', 'bi-bullseye'],
-                            ['jobs.index', 'Offres enregistrées', 'jobs.*', 'bi-megaphone'],
-                            ['templates.index', 'Modèles', 'templates.*', 'bi-layout-text-window'],
+                            ['applications.index', 'Candidatures', 'applications.*', 'bi-briefcase'],
                             ['billing.index', 'Abonnement', 'billing.*', 'bi-credit-card'],
+                            ['profile.edit', 'Compte', 'profile.*', 'bi-person'],
+                            ['settings.edit', 'Paramètres', 'settings.*', 'bi-gear'],
                         ];
                     @endphp
                     @foreach ($primary as [$route, $label, $pattern, $icon])
@@ -60,7 +58,7 @@
                 <p class="mb-0 small text-secondary text-truncate d-none d-md-block">{{ auth()->user()->name }}</p>
                 <div class="d-flex align-items-center gap-2 ms-auto">
                     @include('partials.theme-toggle')
-                    <a class="btn btn-primary" href="{{ route('start.index') }}" aria-label="Commencer un CV"><i class="bi bi-plus-lg d-sm-none" aria-hidden="true"></i><span class="d-none d-sm-inline">Commencer</span></a>
+                    <a class="btn btn-primary" href="{{ route('templates.index') }}" aria-label="Choisir un modèle"><i class="bi bi-plus-lg d-sm-none" aria-hidden="true"></i><span class="d-none d-sm-inline">Choisir un modèle</span></a>
                 </div>
             </header>
             <main id="contenu" class="cvora-content">

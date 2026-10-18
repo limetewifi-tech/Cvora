@@ -138,10 +138,14 @@ class ResumeContent
     public static function normalizeTheme(mixed $input, array $fallback = []): array
     {
         $input = is_array($input) ? $input : [];
-        $primary = self::hex($input['primary'] ?? null) ?? self::hex($fallback['primary'] ?? null) ?? '#2563EB';
-        $accent = self::hex($input['accent'] ?? null) ?? self::hex($fallback['accent'] ?? null) ?? '#1F2937';
+        $primary = self::hex($input['primary'] ?? null) ?? self::hex($fallback['primary'] ?? null) ?? '#0F766E';
+        $accent = self::hex($input['accent'] ?? null) ?? self::hex($fallback['accent'] ?? null) ?? '#1C1917';
+        $fonts = ['sans', 'serif', 'mono'];
+        $sizes = ['s', 'm', 'l'];
+        $font = in_array($input['font'] ?? '', $fonts, true) ? $input['font'] : (in_array($fallback['font'] ?? '', $fonts, true) ? $fallback['font'] : 'sans');
+        $size = in_array($input['size'] ?? '', $sizes, true) ? $input['size'] : (in_array($fallback['size'] ?? '', $sizes, true) ? $fallback['size'] : 'm');
 
-        return ['primary' => $primary, 'accent' => $accent];
+        return ['primary' => $primary, 'accent' => $accent, 'font' => $font, 'size' => $size];
     }
 
     public static function normalizeOrder(mixed $input, ?array $preferred = null): array

@@ -37,7 +37,7 @@ class ResumeController extends Controller
             'plan' => $quota->plan($user),
             'resumeCount' => $user->resumes()->count(),
             'defaultTitle' => $user->profile?->first_name ? 'CV de '.$user->profile->first_name : 'Mon CV',
-            'preferredSlug' => $user->profile?->preference('default_template'),
+            'preferredSlug' => $request->query('modele') ?: $user->profile?->preference('default_template'),
         ]);
     }
 
@@ -120,7 +120,7 @@ class ResumeController extends Controller
             'checks' => ResumeReadiness::checks($form),
             'credits' => app(QuotaService::class)->creditsRemaining($request->user()),
             'versions' => $resume->versions()->latest()->limit(12)->get(),
-            'wizard' => $request->boolean('wizard'),
+            'wizard' => ! $request->boolean('complet'),
             'wizardStep' => max(1, min(6, (int) $request->query('wizard_step', 1))),
         ]);
     }
@@ -212,7 +212,9 @@ class ResumeController extends Controller
     {
         $parameters = ['resume' => $resume];
 
-        if ($request->boolean('wizard')) {
+        if ($request->boolean('complet')) {
+            $parameters['complet'] = 1;
+        } elseif ($request->boolean('wizard')) {
             $parameters['wizard'] = 1;
             $parameters['wizard_step'] = max(1, min(6, (int) $request->input('wizard_step', 1)));
         }
@@ -228,7 +230,7 @@ class ResumeController extends Controller
             'summary' => old('summary', $resume->summary),
             'template_id' => old('template_id', $resume->template_id),
             'personal' => old('personal', $resume->personal ?? ResumeContent::emptyPersonal()),
-            'theme' => old('theme', $resume->theme ?? ['primary' => '#2563EB', 'accent' => '#1F2937']),
+            'theme' => ResumeContent::normalizeTheme(old('theme', $resume->theme), $resume->template?->default_theme ?? []),
             'section_order' => old('section_order', $resume->section_order ?? ResumeContent::defaultOrder()),
             'status' => old('status', $resume->status),
         ];

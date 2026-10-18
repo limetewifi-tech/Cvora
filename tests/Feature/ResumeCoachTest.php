@@ -34,7 +34,9 @@ class ResumeCoachTest extends TestCase
             ->assertSee('Améliorer ce texte')
             ->assertSee('Corriger l\'orthographe', false)
             ->assertSee('Rendre le français plus clair')
-            ->assertSee('Afficher seulement ce qui reste')
+            ->assertSee('Étape 1 sur 6')
+            ->assertSee('Police')
+            ->assertSee('Taille')
             ->assertSee('Cette partie est déjà remplie')
             ->assertSee('Retenir ce modèle')
             ->assertSee('cadre=1', false);

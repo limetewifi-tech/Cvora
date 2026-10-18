@@ -1,4 +1,5 @@
-<h1 style="font-size:16pt;">{{ mb_strtoupper($document['name']) }}</h1>
-<p>{{ $document['headline'] }}</p>
-<p class="meta" style="margin-top:4px;">{{ implode(' | ', $document['contact']) }}</p>
-<div style="margin-top:10px;">@include('resumes.templates._flow', ['bilingual' => true, 'summaryLabel' => 'Profil / Profile'])</div>
+<h1>{{ $document['name'] }}</h1>
+@if ($document['headline'])<p class="center">{{ $document['headline'] }}</p>@endif
+@if ($document['contact'])<p class="center meta">{{ implode(' · ', $document['contact']) }}</p>@endif
+<div class="rule" style="border-top:1px solid {{ $document['accent'] }};margin:10px 0;"></div>
+@include('resumes.templates._flow', ['summaryLabel' => 'Profil'])

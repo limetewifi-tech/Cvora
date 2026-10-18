@@ -3,37 +3,37 @@
 
 :root,
 [data-bs-theme="light"] {
-    --cvora-blue: #2563eb;
-    --cvora-blue-light: #3b82f6;
-    --cvora-blue-pale: #dbeafe;
+    --cvora-blue: #0f766e;
+    --cvora-blue-light: #14b8a6;
+    --cvora-blue-pale: #ccfbf1;
     --cvora-success: #10b981;
     --cvora-accent: #f59e0b;
-    --cvora-ink: #1f2937;
-    --cvora-mist: #f3f4f6;
+    --cvora-ink: #1c1917;
+    --cvora-mist: #f6f3ee;
     --cvora-white: #ffffff;
     --cvora-card-bg: #ffffff;
     --cvora-sidebar-bg: #ffffff;
     --cvora-shadow: 0 10px 30px rgba(31, 41, 55, 0.06);
     --cvora-heading: "Poppins", "Inter", "Segoe UI", sans-serif;
-    --bs-primary: #2563eb;
-    --bs-primary-rgb: 37, 99, 235;
+    --bs-primary: #0f766e;
+    --bs-primary-rgb: 15, 118, 110;
     --bs-success: #10b981;
     --bs-success-rgb: 16, 185, 129;
     --bs-warning: #f59e0b;
     --bs-warning-rgb: 245, 158, 11;
     --bs-body-color: #1f2937;
-    --bs-body-bg: #f3f4f6;
+    --bs-body-bg: #f6f3ee;
     --bs-emphasis-color: #111827;
     --bs-secondary-color: #4b5563;
     --bs-tertiary-color: #6b7280;
     --bs-border-color: #e5e7eb;
-    --bs-link-color: #2563eb;
-    --bs-link-hover-color: #1d4ed8;
+    --bs-link-color: #0f766e;
+    --bs-link-hover-color: #115e59;
     --bs-body-font-family: "Inter", "Segoe UI", sans-serif;
     --bs-border-radius: 0.75rem;
     --bs-border-radius-lg: 1rem;
     --bs-border-radius-xl: 1.25rem;
-    --bs-focus-ring-color: rgba(37, 99, 235, 0.35);
+    --bs-focus-ring-color: rgba(15, 118, 110, 0.35);
 }
 
 [data-bs-theme="dark"] {
@@ -566,6 +566,70 @@ pre {
     [data-wizard][data-wizard-pane="preview"] [data-wizard-form] {
         display: none;
     }
+}
+
+.cvora-public {
+    background: #f6f3ee;
+}
+
+.cvora-thumb {
+    position: relative;
+    display: block;
+    height: 340px;
+    overflow: hidden;
+    background: #e7e5e4;
+    border-bottom: 1px solid var(--bs-border-color);
+}
+
+.cvora-thumb iframe {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    width: 794px;
+    height: 1123px;
+    border: 0;
+    transform: translateX(-50%) scale(0.36);
+    transform-origin: top center;
+    pointer-events: none;
+}
+
+.cvora-studio {
+    background: #f6f3ee;
+    min-height: 100vh;
+}
+
+.cvora-studio-bar {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.75rem 1.25rem;
+    background: #fff;
+    border-bottom: 1px solid #e7e5e4;
+}
+
+.cvora-studio-bar a {
+    color: inherit;
+    text-decoration: none;
+}
+
+.cvora-studio-main {
+    padding: 1.25rem;
+}
+
+.cvora-swatch {
+    width: 1.35rem;
+    height: 1.35rem;
+    border: 2px solid #fff;
+    border-radius: 999px;
+    box-shadow: 0 0 0 1px #d6d3d1;
+    padding: 0;
+}
+
+.cvora-toolbar .form-label {
+    font-size: 0.75rem;
 }
 
 .cvora-score {

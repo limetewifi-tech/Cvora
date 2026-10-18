@@ -5,10 +5,10 @@
     <p class="text-secondary">Choisissez une action. Vos chiffres proviennent uniquement de votre compte.</p>
     <div class="row g-3 mt-1">
         <div class="col-md-4">
-            <a class="card h-100 text-decoration-none" href="{{ route('start.index', ['objectif' => 'creer']) }}">
+            <a class="card h-100 text-decoration-none" href="{{ route('templates.index') }}">
                 <div class="card-body">
-                    <h2 class="h5">Créer un CV</h2>
-                    <p class="small text-secondary mb-0">Ouvrir un document et son aperçu A4.</p>
+                    <h2 class="h5">Choisir un modèle</h2>
+                    <p class="small text-secondary mb-0">Ouvrir la galerie, puis remplir le CV à côté de l'aperçu A4.</p>
                 </div>
             </a>
         </div>

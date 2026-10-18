@@ -1,12 +1,11 @@
 <div class="mast">
     <h1>{{ $document['name'] }}</h1>
-    <p>{{ $document['headline'] }}</p>
-    <p style="margin-top:6px;font-size:9pt;">{{ implode(' | ', $document['contact']) }}</p>
+    @if ($document['headline'])<p>{{ $document['headline'] }}</p>@endif
+    @if ($document['contact'])<p style="margin-top:6px;">{{ implode(' · ', $document['contact']) }}</p>@endif
 </div>
-<div class="pad">
-    @php $skills = collect($document['sections'])->firstWhere('key', 'skills'); @endphp
-    @if ($skills)
-        <div class="section"><h2 style="color:#2563EB;">Compétences</h2><p>@foreach ($skills['items'] as $item)<span class="tag">{{ $item['primary'] }}</span>@endforeach</p></div>
-    @endif
-    @include('resumes.templates._flow', ['skip' => ['skills'], 'asTags' => false])
-</div>
+<table class="layout-cols cols">
+    <tr>
+        <td>@include('resumes.templates._flow', ['showSummary' => false, 'skip' => ['skills', 'languages', 'certifications', 'interests', 'references']])</td>
+        <td>@include('resumes.templates._flow', ['skip' => ['experiences', 'education', 'projects'], 'asTags' => true])</td>
+    </tr>
+</table>

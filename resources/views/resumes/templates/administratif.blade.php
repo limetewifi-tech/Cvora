@@ -1,10 +1,4 @@
-<div style="border-left:6px solid #1F2937;padding-left:12px;">
-    <h1>{{ $document['name'] }}</h1>
-    <p>{{ $document['headline'] }}</p>
-</div>
-<table>
-    <tr><td class="label">Courriel</td><td>{{ $document['contact'][0] ?? '' }}</td></tr>
-    <tr><td class="label">Téléphone</td><td>{{ $document['contact'][1] ?? '' }}</td></tr>
-    <tr><td class="label">Adresse</td><td>{{ $document['contact'][2] ?? '' }}</td></tr>
-</table>
-<div class="pad">@include('resumes.templates._flow')</div>
+<h1>{{ $document['name'] }}</h1>
+@if ($document['headline'])<p>{{ $document['headline'] }}</p>@endif
+@if ($document['contact'])<p class="meta">{{ implode(' · ', $document['contact']) }}</p>@endif
+@include('resumes.templates._flow', ['summaryLabel' => 'Profil'])

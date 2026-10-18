@@ -29,7 +29,7 @@ class StartTest extends TestCase
         $this->get(route('dashboard'))
             ->assertOk()
             ->assertSee('Créer un CV')
-            ->assertSee('Commencer');
+            ->assertSee('Choisir un modèle');
     }
 
     public function test_creating_from_the_start_page_uses_the_preferred_template_and_headline(): void

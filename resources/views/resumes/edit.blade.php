@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends('layouts.studio')
 @section('document-title', $resume->title)
 @section('content')
     @php
@@ -87,6 +87,10 @@
                 @if ($wizard)
                     <input type="hidden" name="wizard" value="1">
                     <input type="hidden" name="wizard_step" value="{{ $wizardStep }}">
+                @else
+                    <input type="hidden" name="complet" value="1">
+                @endif
+                @if ($wizard)
                     <nav class="d-flex flex-wrap gap-2" aria-label="Étapes du CV">
                         @foreach ($wizardMeta as $number => $meta)
                             <a class="btn btn-sm {{ $number === $wizardStep ? 'btn-primary' : 'btn-outline-primary' }} cvora-step" href="{{ $wizardUrl($number) }}" data-wizard-go @if ($number === $wizardStep) aria-current="step" @endif>{{ $number }}. {{ $meta[0] }}</a>
@@ -222,33 +226,37 @@
                 <section class="card" data-wizard-step="6"@if ($wizard && $wizardStep !== 6) hidden @endif>
                     <div class="card-body vstack gap-3">
                         <h2 class="h5">Modèle et couleurs</h2>
-                        <div>
-                            <label class="form-label" for="template_id">Modèle</label>
-                            <select class="form-select" id="template_id" name="template_id">
-                                @foreach ($templates as $template)
-                                    @php $allowed = ! $template->is_premium || $quota->allows(auth()->user(), 'premium_templates'); @endphp
-                                    <option value="{{ $template->id }}" @selected($form['template_id'] == $template->id) @disabled(! $allowed && $form['template_id'] != $template->id)>{{ $template->name }}{{ $template->is_premium ? ' · premium' : '' }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-                        <div class="row g-3">
-                            <div class="col-sm-6">
-                                <label class="form-label" for="primary">Couleur principale</label>
-                                <input class="form-control" id="primary" name="theme[primary]" value="{{ $form['theme']['primary'] ?? '#2563EB' }}">
+                        @if ($wizard)
+                            <p class="small text-secondary mb-0">Le modèle, la couleur, la police et la taille se règlent au-dessus de l'aperçu. Changer de modèle conserve les textes déjà saisis.</p>
+                        @else
+                            <div>
+                                <label class="form-label" for="template_id">Modèle</label>
+                                <select class="form-select" id="template_id" name="template_id">
+                                    @foreach ($templates as $template)
+                                        @php $allowed = ! $template->is_premium || $quota->allows(auth()->user(), 'premium_templates'); @endphp
+                                        <option value="{{ $template->id }}" @selected($form['template_id'] == $template->id) @disabled(! $allowed && $form['template_id'] != $template->id)>{{ $template->name }}{{ $template->is_premium ? ' · premium' : '' }}</option>
+                                    @endforeach
+                                </select>
                             </div>
-                            <div class="col-sm-6">
-                                <label class="form-label" for="accent">Couleur d'accent</label>
-                                <input class="form-control" id="accent" name="theme[accent]" value="{{ $form['theme']['accent'] ?? '#1F2937' }}">
+                            <div class="row g-3">
+                                <div class="col-sm-6">
+                                    <label class="form-label" for="primary">Couleur principale</label>
+                                    <input class="form-control" id="primary" name="theme[primary]" value="{{ $form['theme']['primary'] ?? '#0F766E' }}">
+                                </div>
+                                <div class="col-sm-6">
+                                    <label class="form-label" for="accent">Couleur d'accent</label>
+                                    <input class="form-control" id="accent" name="theme[accent]" value="{{ $form['theme']['accent'] ?? '#1C1917' }}">
+                                </div>
                             </div>
-                        </div>
-                        <div>
-                            <label class="form-label" for="status">Statut</label>
-                            <select class="form-select" id="status" name="status">
-                                <option value="draft" @selected($form['status'] === 'draft')>Brouillon</option>
-                                <option value="ready" @selected($form['status'] === 'ready')>Prêt</option>
-                            </select>
-                        </div>
-                        <button class="btn btn-primary" type="submit" data-loading>Enregistrer</button>
+                            <div>
+                                <label class="form-label" for="status">Statut</label>
+                                <select class="form-select" id="status" name="status">
+                                    <option value="draft" @selected($form['status'] === 'draft')>Brouillon</option>
+                                    <option value="ready" @selected($form['status'] === 'ready')>Prêt</option>
+                                </select>
+                            </div>
+                            <button class="btn btn-primary" type="submit" data-loading>Enregistrer</button>
+                        @endif
                         <button class="btn btn-outline-primary" type="button" data-prefer-template data-prefer-url="{{ route('cvs.prefer-template', $resume) }}">Retenir ce modèle</button>
                         <p class="small text-secondary mb-0" data-prefer-status>Le modèle retenu est proposé à la création des prochains CV.</p>
                     </div>
@@ -271,6 +279,48 @@
         </div>
         <aside class="{{ $wizard ? 'col-xl-6' : 'col-xl-4' }}" @if ($wizard) data-wizard-preview @endif>
             <div class="cvora-preview-sticky vstack gap-3">
+                @if ($wizard)
+                    <div class="cvora-toolbar card">
+                        <div class="card-body d-flex flex-wrap align-items-end gap-3 py-3">
+                            <div>
+                                <label class="form-label mb-1" for="template_id">Modèle</label>
+                                <select class="form-select form-select-sm" id="template_id" name="template_id" form="resume-form">
+                                    @foreach ($templates as $template)
+                                        @php $allowed = ! $template->is_premium || $quota->allows(auth()->user(), 'premium_templates'); @endphp
+                                        <option value="{{ $template->id }}" @selected($form['template_id'] == $template->id) @disabled(! $allowed && $form['template_id'] != $template->id)>{{ $template->name }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div>
+                                <p class="form-label mb-1" id="color-label">Couleur</p>
+                                <div class="d-flex align-items-center gap-1" role="group" aria-labelledby="color-label">
+                                    @foreach (['#0F766E', '#1C1917', '#9A3412', '#1E3A8A', '#44403C', '#B45309'] as $swatch)
+                                        <button class="cvora-swatch" type="button" data-theme-swatch="{{ $swatch }}" style="background: {{ $swatch }}" aria-label="Couleur {{ $swatch }}"></button>
+                                    @endforeach
+                                    <input class="form-control form-control-color" id="primary" name="theme[primary]" form="resume-form" value="{{ $form['theme']['primary'] }}" aria-label="Couleur principale">
+                                </div>
+                            </div>
+                            <div>
+                                <label class="form-label mb-1" for="theme-font">Police</label>
+                                <select class="form-select form-select-sm" id="theme-font" name="theme[font]" form="resume-form">
+                                    <option value="sans" @selected(($form['theme']['font'] ?? 'sans') === 'sans')>Sans</option>
+                                    <option value="serif" @selected(($form['theme']['font'] ?? '') === 'serif')>Serif</option>
+                                    <option value="mono" @selected(($form['theme']['font'] ?? '') === 'mono')>Mono</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="form-label mb-1" for="theme-size">Taille</label>
+                                <select class="form-select form-select-sm" id="theme-size" name="theme[size]" form="resume-form">
+                                    <option value="s" @selected(($form['theme']['size'] ?? 'm') === 's')>S</option>
+                                    <option value="m" @selected(($form['theme']['size'] ?? 'm') === 'm')>M</option>
+                                    <option value="l" @selected(($form['theme']['size'] ?? '') === 'l')>L</option>
+                                </select>
+                            </div>
+                            <input type="hidden" name="theme[accent]" form="resume-form" value="{{ $form['theme']['accent'] }}">
+                            <input type="hidden" name="status" form="resume-form" value="{{ $form['status'] }}">
+                        </div>
+                    </div>
+                @endif
                 <div class="card cvora-a4-card">
                     <div class="d-flex align-items-center justify-content-between gap-2 border-bottom px-3 py-2">
                         <p class="mb-0 small fw-semibold">Aperçu A4</p>

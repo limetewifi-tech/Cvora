@@ -26,21 +26,21 @@ class TemplateMatcher
         if ($education > 0 && $experiences === 0) {
             return [
                 'slug' => 'etudiant',
-                'reason' => 'La formation est présente et aucune expérience n\'est détectée. Le modèle Étudiant met la formation en avant.'.$note,
+                'reason' => 'La formation est présente et aucune expérience n\'est détectée. Le modèle Créatif met la formation en avant.'.$note,
             ];
         }
 
         if ($skills >= 4 && $premiumAllowed) {
             return [
                 'slug' => 'technique',
-                'reason' => 'Plusieurs compétences sont détectées. Le modèle Technique les met en avant.'.$note,
+                'reason' => 'Plusieurs compétences sont détectées. Le modèle Deux colonnes les place à part.'.$note,
             ];
         }
 
         if ($experiences >= 2 && $premiumAllowed) {
             return [
                 'slug' => 'experimente',
-                'reason' => 'Au moins deux expériences sont détectées. Le modèle Professionnel expérimenté convient à un parcours déjà long.'.$note,
+                'reason' => 'Au moins deux expériences sont détectées. Le modèle Colonne latérale convient à un parcours déjà long.'.$note,
             ];
         }
 

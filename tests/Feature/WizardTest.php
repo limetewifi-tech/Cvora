@@ -22,10 +22,15 @@ class WizardTest extends TestCase
 
         $this->actingAs($user)->get(route('cvs.edit', $resume))
             ->assertOk()
-            ->assertSee('Mode étape par étape')
+            ->assertSee('Étape 1 sur 6')
+            ->assertSee('Importer mon CV')
+            ->assertSee('Modèle')
+            ->assertSee('Police');
+
+        $this->get(route('cvs.edit', ['resume' => $resume, 'complet' => 1]))
+            ->assertOk()
             ->assertSee('Afficher seulement ce qui reste')
-            ->assertDontSee('Étape 1 sur 6')
-            ->assertDontSee('Importer mon CV');
+            ->assertDontSee('Étape 1 sur 6');
 
         $first = $this->get(route('cvs.edit', ['resume' => $resume, 'wizard' => 1, 'wizard_step' => 1]));
         $first->assertOk()

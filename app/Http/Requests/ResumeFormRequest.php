@@ -28,6 +28,8 @@ class ResumeFormRequest extends FormRequest
             'section_order.*' => ['in:'.$sections],
             'theme.primary' => ['nullable', 'regex:/^#[0-9A-Fa-f]{6}$/'],
             'theme.accent' => ['nullable', 'regex:/^#[0-9A-Fa-f]{6}$/'],
+            'theme.font' => ['nullable', 'in:sans,serif,mono'],
+            'theme.size' => ['nullable', 'in:s,m,l'],
         ];
 
         foreach (array_keys(ResumeContent::emptyPersonal()) as $key) {

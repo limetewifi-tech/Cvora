@@ -49,6 +49,8 @@ class ResumePresenter
             'sections' => $sections,
             'primary' => $theme['primary'],
             'accent' => $theme['accent'],
+            'font' => $theme['font'],
+            'size' => $theme['size'],
         ];
     }
 

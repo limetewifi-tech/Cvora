@@ -2,7 +2,10 @@
 @section('document-title', 'Lettres de motivation')
 @section('content')
     <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
-        <h1 class="h2 mb-0">Lettres de motivation</h1>
+        <div>
+            <h1 class="h2 mb-1">Lettres de motivation</h1>
+            <p class="small text-secondary mb-0">La lettre se rédige à part du CV. Une proposition de l'assistant n'est enregistrée que si vous la validez.</p>
+        </div>
         <a class="btn btn-primary" href="{{ route('letters.create') }}">Nouvelle lettre</a>
     </div>
     <div class="vstack gap-3 mt-4">
