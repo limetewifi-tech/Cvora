@@ -47,8 +47,14 @@
                 <div class="col-sm-6">
                     <label class="form-label">Modèle A4</label>
                     <select class="form-select" name="layout">
-                        @foreach (\App\Support\LetterLayouts::all() as $value => $layout)
-                            <option value="{{ $value }}" @selected(old('layout', $letter->layout ?: 'classique') === $value)>{{ $layout['name'] }}</option>
+                        @foreach (\App\Support\LetterLayouts::categories() as $category => $categoryLabel)
+                            <optgroup label="{{ $categoryLabel }}">
+                                @foreach (\App\Support\LetterLayouts::all() as $value => $layout)
+                                    @if ($layout['category'] === $category)
+                                        <option value="{{ $value }}" @selected(old('layout', $letter->layout ?: 'classique') === $value)>{{ $layout['name'] }}</option>
+                                    @endif
+                                @endforeach
+                            </optgroup>
                         @endforeach
                     </select>
                 </div>
@@ -86,6 +92,43 @@
             <button class="btn btn-primary" type="submit" data-loading>Enregistrer</button>
         </div>
     </form>
+    @if (! $letter->exists && request()->boolean('ia'))
+        <form method="POST" action="{{ route('assistant.letter') }}" id="lettre-ia" class="card mt-4" data-ai-form>
+            @csrf
+            <div class="card-body vstack gap-3">
+                <h2 class="h5 mb-0">Créer une lettre avec l'IA</h2>
+                <p class="small text-secondary mb-0">Indiquez le poste et l'organisation. Ajoutez votre CV ou l'offre si vous les avez. Le texte proposé n'est enregistré que si vous le validez.</p>
+                <div>
+                    <label class="form-label" for="ia-position">Poste</label>
+                    <input class="form-control" id="ia-position" name="position" value="{{ old('position', $letter->position) }}" maxlength="160">
+                </div>
+                <div>
+                    <label class="form-label" for="ia-company">Organisation</label>
+                    <input class="form-control" id="ia-company" name="company" value="{{ old('company', $letter->company) }}" maxlength="160">
+                </div>
+                <div>
+                    <label class="form-label" for="ia-offer">Offre d'emploi</label>
+                    <textarea class="form-control" id="ia-offer" name="offer" rows="4" maxlength="8000">{{ old('offer') }}</textarea>
+                </div>
+                <div>
+                    <label class="form-label" for="ia-resume">CV</label>
+                    <select class="form-select" id="ia-resume" name="resume_id">
+                        <option value="">Aucun</option>
+                        @foreach ($resumes as $resume)
+                            <option value="{{ $resume->id }}" @selected((string) old('resume_id') === (string) $resume->id)>{{ $resume->title }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" name="authorize_resume" id="ia-authorize" value="1" @checked(old('authorize_resume'))>
+                    <label class="form-check-label" for="ia-authorize">J'autorise l'utilisation du CV choisi.</label>
+                </div>
+                <input type="hidden" name="tone" value="{{ $letter->tone }}">
+                <input type="hidden" name="length" value="{{ $letter->length }}">
+                <button class="btn btn-outline-primary align-self-start" type="submit">Proposer une lettre avec l'IA</button>
+            </div>
+        </form>
+    @endif
     @if ($letter->exists)
         <section class="card mt-4 overflow-hidden">
             <div class="d-flex align-items-center justify-content-between gap-2 border-bottom px-3 py-2">
@@ -99,7 +142,7 @@
         </section>
     @endif
     @if ($letter->exists)
-        <form method="POST" action="{{ route('assistant.letter') }}" class="mt-3" data-ai-form>
+        <form method="POST" action="{{ route('assistant.letter') }}" class="mt-3" data-ai-form @if (request()->boolean('ia')) id="lettre-ia" @endif>
             @csrf
             <input type="hidden" name="position" value="{{ $letter->position }}">
             <input type="hidden" name="company" value="{{ $letter->company }}">

@@ -39,6 +39,7 @@ class ResumeController extends Controller
             'resumeCount' => $user->resumes()->count(),
             'defaultTitle' => $user->profile?->first_name ? 'CV de '.$user->profile->first_name : 'Mon CV',
             'preferredSlug' => $request->query('modele') ?: $user->profile?->preference('default_template'),
+            'withAssistant' => $request->boolean('ia'),
         ]);
     }
 
@@ -61,7 +62,12 @@ class ResumeController extends Controller
             return $this->fail($request, $exception, route('cvs.create'));
         }
 
-        return redirect()->route('cvs.edit', ['resume' => $resume, 'wizard' => 1, 'wizard_step' => 1])->with('success', 'Votre CV est créé. Complétez-le étape par étape. L\'aperçu A4 se met à jour après l\'enregistrement.');
+        return redirect()->route('cvs.edit', [
+            'resume' => $resume,
+            'wizard' => 1,
+            'wizard_step' => 1,
+            'assistant' => $request->boolean('ia') ? 1 : null,
+        ])->with('success', 'Votre CV est créé. Complétez-le étape par étape. L\'aperçu A4 se met à jour après l\'enregistrement.');
     }
 
     public function preferTemplate(Request $request, Resume $resume)
@@ -214,6 +220,7 @@ class ResumeController extends Controller
             'title' => $resume->title,
             'screen' => true,
             'embedded' => $request->boolean('cadre'),
+            'watermark' => ! app(QuotaService::class)->allowsCleanResumePrint($request->user()),
         ]);
     }
 

@@ -2,18 +2,19 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\CoverLetter;
 use App\Models\Plan;
+use App\Models\Resume;
 use App\Models\ResumeTemplate;
 use App\Support\Guides;
+use Illuminate\Support\Collection;
 
 class HomeController extends Controller
 {
     public function index()
     {
         return view('public.home', [
-            'plans' => Plan::query()->active()->orderBy('sort_order')->get(),
-            'templates' => ResumeTemplate::available(),
-            'faqs' => $this->faqs(),
+            'documents' => $this->recentDocuments(),
         ]);
     }
 
@@ -31,6 +32,11 @@ class HomeController extends Controller
         ]);
     }
 
+    public function letters()
+    {
+        return view('public.letters');
+    }
+
     public function resources()
     {
         return view('public.resources', ['guides' => Guides::all()]);
@@ -44,14 +50,32 @@ class HomeController extends Controller
         return view('public.resource', ['guide' => $guide]);
     }
 
-    private function faqs(): array
+    /**
+     * @return Collection<int, array{kind: string, title: string, href: string, updated_at: mixed}>
+     */
+    private function recentDocuments(): Collection
     {
-        return [
-            ['q' => 'CVora rédige-t-il un parcours à ma place ?', 'a' => 'Non. L\'assistant reformule les informations que vous fournissez. Il ne doit pas inventer de diplôme, d\'expérience ou de compétence. Vous validez chaque proposition avant qu\'elle ne soit enregistrée.'],
-            ['q' => 'Puis-je importer un CV existant ?', 'a' => 'Oui, au format PDF texte ou Word .docx. Les champs détectés sont présentés pour correction. Un PDF scanné sans texte exploitable est signalé : la reconnaissance optique n\'est pas encore branchée.'],
-            ['q' => 'Mes documents sont-ils visibles par l\'administrateur ?', 'a' => 'Non. L\'administration gère les comptes, les offres et les statistiques globales. Elle n\'ouvre pas le contenu des CV.'],
-            ['q' => 'Le paiement Mobile Money est-il déjà encaissé ?', 'a' => 'Pas tant que les identifiants marchands ne sont pas configurés et qu\'une notification signée du prestataire n\'a pas été vérifiée. Le mode bac à sable est clairement séparé et ne représente pas un paiement réel.'],
-            ['q' => 'Puis-je supprimer mon compte ?', 'a' => 'Oui, depuis les paramètres. Les CV, lettres et fichiers importés sont supprimés. Le compte est anonymisé. Les transactions restent conservées sans le contenu des documents, pour le suivi comptable.'],
-        ];
+        $user = auth()->user();
+
+        if ($user === null) {
+            return collect();
+        }
+
+        return $user->resumes()->latest('updated_at')->limit(4)->get()
+            ->map(fn (Resume $resume) => [
+                'kind' => 'CV',
+                'title' => $resume->title,
+                'href' => route('cvs.edit', $resume),
+                'updated_at' => $resume->updated_at,
+            ])
+            ->concat($user->coverLetters()->latest('updated_at')->limit(4)->get()->map(fn (CoverLetter $letter) => [
+                'kind' => 'Lettre',
+                'title' => $letter->title,
+                'href' => route('letters.edit', $letter),
+                'updated_at' => $letter->updated_at,
+            ]))
+            ->sortByDesc(fn (array $document) => $document['updated_at'])
+            ->take(4)
+            ->values();
     }
 }

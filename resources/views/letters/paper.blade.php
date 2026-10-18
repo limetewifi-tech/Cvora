@@ -38,10 +38,11 @@
         </style>
     @endif
 </head>
-<body class="layout-{{ $sheet['layout'] }}@if ($screen ?? false) is-screen @endif @if ($embedded ?? false) is-embedded @endif">
+@php($letterView = view()->exists('letters.layouts.'.$sheet['layout']) ? 'letters.layouts.'.$sheet['layout'] : 'letters.layouts.composed')
+<body class="layout-{{ $sheet['layout'] }} family-{{ $sheet['family'] ?? $sheet['layout'] }}@if ($screen ?? false) is-screen @endif @if ($embedded ?? false) is-embedded @endif">
     @if ($screen ?? false)
         <div class="a4-stage"><div class="a4-sheet">
-            @include('letters.layouts.'.$sheet['layout'])
+            @include($letterView)
         </div></div>
         @if ($embedded ?? false)
             <script>
@@ -52,7 +53,9 @@
                         var pageWidth = 210 * 96 / 25.4;
                         sheet.style.width = '210mm';
                         sheet.style.minHeight = '297mm';
-                        var scale = Math.max(0.2, document.documentElement.clientWidth / pageWidth);
+                        var width = document.documentElement.clientWidth;
+                        if (width < 40) return;
+                        var scale = width / pageWidth;
                         sheet.style.transform = 'scale(' + scale + ')';
                         sheet.style.transformOrigin = 'top left';
                         document.body.style.margin = '0';
@@ -60,12 +63,13 @@
                         document.body.style.overflow = 'hidden';
                     };
                     fit();
+                    window.addEventListener('load', fit);
                     window.addEventListener('resize', fit);
                 }());
             </script>
         @endif
     @else
-        @include('letters.layouts.'.$sheet['layout'])
+        @include($letterView)
     @endif
 </body>
 </html>

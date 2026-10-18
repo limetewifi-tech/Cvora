@@ -31,6 +31,8 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/modeles', [HomeController::class, 'templates'])->name('templates.index');
+Route::get('/modeles-lettres', [HomeController::class, 'letters'])->name('templates.letters');
+Route::get('/modeles-lettres/{layout}/papier', [CoverLetterController::class, 'sample'])->name('templates.letters.paper');
 Route::get('/modeles/{template:slug}/exemple', [TemplateExampleController::class, 'show'])->name('templates.example');
 Route::get('/modeles/{template:slug}/papier', [TemplateExampleController::class, 'paper'])->name('templates.paper');
 Route::get('/tarifs', [HomeController::class, 'pricing'])->name('pricing');

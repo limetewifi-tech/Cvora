@@ -126,7 +126,10 @@ class ResumeTest extends TestCase
             ->assertSee('Premium')
             ->assertDontSee('Le champ template id est obligatoire.');
 
-        $this->assertSame(8, ResumeTemplate::query()->count());
+        $this->assertSame(150, ResumeTemplate::query()->count());
+        $this->assertSame(8, ResumeTemplate::query()->whereIn('slug', [
+            'classique', 'minimaliste', 'moderne', 'technique', 'experimente', 'international', 'etudiant', 'administratif',
+        ])->count());
 
         $this->post(route('cvs.store'), ['title' => 'Sans modèle'])
             ->assertSessionHasErrors([
