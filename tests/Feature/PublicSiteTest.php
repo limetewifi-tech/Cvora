@@ -30,7 +30,9 @@ class PublicSiteTest extends TestCase
             ->assertOk()
             ->assertSee('Moderne')
             ->assertSee('Élégant')
-            ->assertSee('Deux colonnes')
+            ->assertSee('Technique')
+            ->assertSee('Choisir ce modèle')
+            ->assertSee('Aperçu détaillé')
             ->assertSee('data-gallery-filter="original"', false)
             ->assertSee('data-category="classique"', false)
             ->assertSee('miniature=1', false);

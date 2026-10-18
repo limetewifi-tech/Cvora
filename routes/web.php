@@ -106,6 +106,8 @@ Route::middleware(['auth', 'active', 'verified.if', 'plan'])->group(function () 
         Route::get('/cvs/{resume}/supprimer', [ResumeController::class, 'delete'])->name('cvs.delete');
         Route::delete('/cvs/{resume}', [ResumeController::class, 'destroy'])->name('cvs.destroy');
         Route::post('/cvs/{resume}/dupliquer', [ResumeController::class, 'duplicate'])->name('cvs.duplicate');
+        Route::post('/cvs/{resume}/photo', [ResumeController::class, 'photo'])->name('cvs.photo');
+        Route::delete('/cvs/{resume}/photo', [ResumeController::class, 'destroyPhoto'])->name('cvs.photo.destroy');
         Route::get('/cvs/{resume}/apercu', [ResumeController::class, 'preview'])->name('cvs.preview');
         Route::post('/cvs/{resume}/conversation', [ResumeCoachController::class, 'store'])->middleware('throttle:ai')->name('cvs.coach');
         Route::post('/cvs/{resume}/correction', [ResumeCoachController::class, 'proofread'])->middleware('throttle:ai')->name('cvs.proofread');

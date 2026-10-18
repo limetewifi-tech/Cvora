@@ -19,7 +19,7 @@ class ResumeTest extends TestCase
     public function test_a_resume_can_be_created_updated_and_deleted(): void
     {
         $user = $this->makeUser('premium');
-        $template = \App\Models\ResumeTemplate::query()->where('slug', 'moderne')->firstOrFail();
+        $template = ResumeTemplate::query()->where('slug', 'moderne')->firstOrFail();
 
         $this->actingAs($user)->post(route('cvs.store'), [
             'title' => 'Candidature banque',
@@ -51,7 +51,7 @@ class ResumeTest extends TestCase
     {
         $user = $this->makeUser('premium');
         $resume = $this->makeResume($user);
-        $lateral = \App\Models\ResumeTemplate::query()->where('slug', 'experimente')->firstOrFail();
+        $lateral = ResumeTemplate::query()->where('slug', 'experimente')->firstOrFail();
 
         $this->actingAs($user)->put(route('cvs.update', $resume), $this->resumeForm($resume, [
             'template_id' => $lateral->id,
@@ -68,7 +68,7 @@ class ResumeTest extends TestCase
             ->assertOk()
             ->assertSee('DejaVu Serif', false)
             ->assertSee('12pt', false)
-            ->assertSee('layout-side', false)
+            ->assertSee('layout-corporate', false)
             ->assertSee('Analyste à Kinshasa.');
     }
 
@@ -89,11 +89,11 @@ class ResumeTest extends TestCase
     {
         $user = $this->makeUser();
         $this->makeResume($user);
-        $premium = \App\Models\ResumeTemplate::query()->where('slug', 'technique')->firstOrFail();
+        $premium = ResumeTemplate::query()->where('slug', 'technique')->firstOrFail();
 
         $this->actingAs($user)->post(route('cvs.store'), [
             'title' => 'Second CV',
-            'template_id' => \App\Models\ResumeTemplate::query()->where('slug', 'classique')->value('id'),
+            'template_id' => ResumeTemplate::query()->where('slug', 'classique')->value('id'),
         ])->assertSessionHas('error');
 
         $this->assertSame(1, $user->resumes()->count());
@@ -110,7 +110,7 @@ class ResumeTest extends TestCase
 
     public function test_create_page_restores_the_template_catalog_when_it_is_empty(): void
     {
-        \App\Models\ResumeTemplate::query()->delete();
+        ResumeTemplate::query()->delete();
         $user = $this->makeUser();
 
         $this->actingAs($user)->get(route('cvs.create'))
@@ -118,13 +118,15 @@ class ResumeTest extends TestCase
             ->assertSee('Choisissez un modèle')
             ->assertSee('Moderne')
             ->assertSee('Classique')
-            ->assertSee('Créatif')
+            ->assertSee('Bleu professionnel')
+            ->assertSee('Corporate')
+            ->assertSee('Exécutif')
             ->assertSee('Élégant')
             ->assertSee('Inclus')
             ->assertSee('Premium')
             ->assertDontSee('Le champ template id est obligatoire.');
 
-        $this->assertSame(8, \App\Models\ResumeTemplate::query()->count());
+        $this->assertSame(8, ResumeTemplate::query()->count());
 
         $this->post(route('cvs.store'), ['title' => 'Sans modèle'])
             ->assertSessionHasErrors([
@@ -136,7 +138,7 @@ class ResumeTest extends TestCase
     {
         $user = $this->makeUser();
         $user->subscription()->delete();
-        $template = \App\Models\ResumeTemplate::query()->where('slug', 'moderne')->firstOrFail();
+        $template = ResumeTemplate::query()->where('slug', 'moderne')->firstOrFail();
 
         $this->actingAs($user)->get(route('cvs.create'))
             ->assertOk()

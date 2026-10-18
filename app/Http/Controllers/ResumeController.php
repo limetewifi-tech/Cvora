@@ -7,6 +7,7 @@ use App\Http\Requests\ResumeFormRequest;
 use App\Models\Resume;
 use App\Models\ResumeTemplate;
 use App\Services\Billing\QuotaService;
+use App\Services\Documents\ResumePhoto;
 use App\Services\Documents\ResumePresenter;
 use App\Services\Resume\ResumeWriter;
 use App\Support\ResumeContent;
@@ -174,6 +175,34 @@ class ResumeController extends Controller
         }
 
         return redirect()->route('cvs.edit', $copy)->with('success', 'Une copie du CV a été créée.');
+    }
+
+    public function photo(Request $request, Resume $resume, ResumePhoto $photos)
+    {
+        $this->authorize('update', $resume);
+        $data = $request->validate([
+            'photo' => ['required', 'file', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
+        ], [
+            'photo.required' => 'Choisissez une photo.',
+            'photo.image' => 'Le fichier doit être une image.',
+            'photo.mimes' => 'Utilisez une photo JPEG, PNG ou WebP.',
+            'photo.max' => 'La photo dépasse 5 Mo.',
+        ]);
+
+        $resume->forceFill([
+            'photo_path' => $photos->store($resume, $data['photo']),
+        ])->save();
+
+        return $this->backToEditor($request, $resume)->with('success', 'La photo est enregistrée. Elle apparaît dans l\'aperçu, le PDF et le document Word.');
+    }
+
+    public function destroyPhoto(Request $request, Resume $resume, ResumePhoto $photos)
+    {
+        $this->authorize('update', $resume);
+        $photos->delete($resume->photo_path);
+        $resume->forceFill(['photo_path' => null])->save();
+
+        return $this->backToEditor($request, $resume)->with('success', 'La photo a été retirée. Les initiales la remplacent.');
     }
 
     public function preview(Request $request, Resume $resume, ResumePresenter $presenter)

@@ -8,6 +8,7 @@ use App\Models\ResumeTemplate;
 use App\Models\ResumeVersion;
 use App\Models\User;
 use App\Services\Billing\QuotaService;
+use App\Services\Documents\ResumePhoto;
 use App\Support\ResumeContent;
 use App\Support\ResumeTemplateCatalog;
 use Illuminate\Support\Facades\DB;
@@ -61,6 +62,7 @@ class ResumeWriter
         foreach (ResumeContent::sections() as $section) {
             if (is_array($present) && ! in_array($section, $present, true)) {
                 $raw[$section] = $existing[$section] ?? [];
+
                 continue;
             }
 
@@ -132,7 +134,7 @@ class ResumeWriter
             $this->guardTemplate($resume->user, $template);
         }
 
-        return $resume->user->resumes()->create([
+        $copy = $resume->user->resumes()->create([
             'template_id' => $resume->template_id,
             'title' => ResumeContent::clean('Copie de '.$resume->title, 160),
             'status' => 'draft',
@@ -144,6 +146,14 @@ class ResumeWriter
             'theme' => $resume->theme,
             'lock_version' => 0,
         ]);
+
+        $photo = app(ResumePhoto::class)->copy($resume->photo_path, $copy);
+
+        if ($photo !== null) {
+            $copy->forceFill(['photo_path' => $photo])->save();
+        }
+
+        return $copy->refresh();
     }
 
     public function snapshot(Resume $resume, string $kind, ?string $note = null): ResumeVersion

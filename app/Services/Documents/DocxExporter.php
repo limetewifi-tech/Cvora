@@ -20,6 +20,11 @@ class DocxExporter
         $phpWord = $this->document();
         $section = $phpWord->addSection($this->margins());
         $primary = ltrim($document['primary'], '#');
+        $photo = app(ResumePhoto::class)->temporarySquare($resume);
+
+        if ($photo !== null) {
+            $section->addImage($photo, ['width' => 72, 'height' => 72]);
+        }
 
         $section->addText($document['name'], ['bold' => true, 'size' => 18, 'color' => $primary], ['spaceAfter' => 80]);
 
@@ -53,7 +58,13 @@ class DocxExporter
             }
         }
 
-        return $this->download($phpWord, $resume->title);
+        try {
+            return $this->download($phpWord, $resume->title);
+        } finally {
+            if ($photo !== null) {
+                @unlink($photo);
+            }
+        }
     }
 
     public function letter(CoverLetter $letter): BinaryFileResponse

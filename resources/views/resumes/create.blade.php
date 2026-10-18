@@ -43,6 +43,9 @@
                                 <span>
                                     <span class="fw-semibold">{{ $template->name }}</span>
                                     <span class="badge text-bg-{{ $template->is_premium ? 'warning' : 'primary' }} ms-1">{{ $template->is_premium ? 'Premium' : 'Inclus' }}</span>
+                                    @if ((string) old('template_id', $defaultTemplate?->id) === (string) $template->id)
+                                        <span class="badge text-bg-success ms-1">Sélectionné</span>
+                                    @endif
                                     <span class="d-block small text-secondary">{{ $template->description }}</span>
                                     @unless ($allowed)
                                         <span class="d-block small">Disponible avec l'abonnement Premium ou Pro.</span>

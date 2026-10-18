@@ -14,41 +14,68 @@
             $sizeKey = $document['size'] ?? 'm';
         @endphp
         body { margin: 0; color: #1c1917; font-family: {{ $fontFaces[$fontKey] ?? $fontFaces['sans'] }}; font-size: {{ $fontSizes[$sizeKey] ?? '10.5pt' }}; line-height: 1.35; overflow-wrap: break-word; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-        .mast, .band, .gold, .tag, h2 { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        table, td, h2, .tag, .side, .band, .exec-head, .color-bar, .gold-line, .monogram { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
         h1, h2, h3, p { margin: 0; }
         h1 { font-size: {{ $nameSizes[$sizeKey] ?? '18pt' }}; line-height: 1.15; }
-        h2 { font-size: 11pt; margin: 11pt 0 4pt; page-break-after: avoid; }
+        h2 { font-size: 11pt; margin: 10pt 0 4pt; page-break-after: avoid; }
         .section { margin-bottom: 2pt; }
-        .item { margin: 0 0 7pt; page-break-inside: avoid; }
+        .item, .job { margin: 0 0 7pt; page-break-inside: avoid; }
         .primary { font-weight: bold; }
-        .meta { color: #4B5563; font-size: 9.5pt; }
-        .tag { display: inline-block; border: 1px solid #2563EB; color: #1D4ED8; padding: 1px 6px; margin: 0 4px 4px 0; font-size: 9pt; }
-        .mast { padding: 12px 14px; }
-        .tpl-moderne .mast { background: {{ $document['primary'] }}; color: #fff; }
-        .tpl-moderne h2 { color: {{ $document['primary'] }}; border-left: 4px solid {{ $document['primary'] }}; padding-left: 8px; }
-        .tpl-classique h1, .tpl-classique .center { text-align: center; }
-        .tpl-classique .rule { border-top: 3px double {{ $document['accent'] }}; margin: 8px 0 12px; }
-        .tpl-classique h2 { text-align: center; letter-spacing: 1px; text-transform: uppercase; font-size: 10pt; }
-        .tpl-minimaliste { padding: 8px 10px; }
-        .tpl-minimaliste h1 { font-weight: normal; letter-spacing: 3px; text-transform: uppercase; }
-        .tpl-minimaliste h2 { font-size: 9pt; letter-spacing: 2px; text-transform: uppercase; color: #78716c; font-weight: normal; border-bottom: 0; }
-        .tpl-etudiant .accent-bar { height: 8px; background: {{ $document['primary'] }}; }
-        .tpl-etudiant h1 { letter-spacing: -0.4px; }
-        .tpl-etudiant h2 { background: {{ $document['primary'] }}; color: #fff; padding: 2px 8px; }
-        .layout-side, .layout-cols { width: 100%; border-collapse: collapse; }
-        .layout-side td, .layout-cols td { vertical-align: top; }
-        .monogram { width: 42px; height: 42px; line-height: 42px; text-align: center; border: 2px solid #fff; font-weight: bold; margin: 0 0 8px; }
-        .tpl-experimente .side { width: 32%; background: {{ $document['primary'] }}; color: #fff; padding: 14px 12px; }
-        .tpl-experimente .side h1, .tpl-experimente .side h2, .tpl-experimente .side p { color: #fff; }
-        .tpl-experimente .side h2 { border: 0; margin-top: 12px; font-size: 10pt; }
-        .tpl-experimente .main { padding: 12px 14px; }
-        .tpl-technique .cols td { width: 50%; padding: 0 10px 0 0; }
-        .tpl-technique .cols td + td { padding: 0 0 0 10px; border-left: 2px solid {{ $document['primary'] }}; }
-        .tpl-administratif h2 { color: #1c1917; border-bottom: 1px solid #1c1917; background: transparent; }
-        .tpl-administratif .mast, .tpl-administratif .tag { background: transparent; color: #1c1917; border-color: #1c1917; }
-        .tpl-international h1 { text-align: center; font-weight: normal; letter-spacing: 3px; text-transform: uppercase; }
-        .tpl-international h2 { border-bottom: 1px solid {{ $document['accent'] }}; text-transform: uppercase; letter-spacing: 2px; font-size: 9pt; font-weight: normal; color: #44403c; }
-        .pad { padding: 12px 14px; }
+        .meta, .level { color: #57534e; font-size: 9pt; }
+        .role { margin-top: 1mm; }
+        .identity, .split, .band, .exec-head, .skill-row { width: 100%; border-collapse: collapse; }
+        .identity td, .split td, .band td, .exec-head td { vertical-align: top; }
+        .photo-cell { width: 32mm; }
+        .photo, .monogram { display: block; }
+        .photo-portrait, .monogram-portrait { width: 32mm; height: 42mm; }
+        .photo-square, .monogram-square { width: 26mm; height: 26mm; }
+        .photo-circle, .monogram-circle { width: 28mm; height: 28mm; }
+        .monogram { text-align: center; font-weight: bold; background: #fff; color: #1c1917; }
+        .monogram-portrait { line-height: 42mm; font-size: 16pt; }
+        .monogram-square { line-height: 26mm; font-size: 13pt; }
+        .monogram-circle { line-height: 28mm; font-size: 13pt; }
+        .contact-line { margin: 0 0 2mm; }
+        .contact-label { font-size: 8pt; letter-spacing: 0.4px; text-transform: uppercase; }
+        .tag { display: inline-block; border: 1px solid {{ $document['primary'] }}; color: {{ $document['primary'] }}; padding: 0.4mm 1.4mm; margin: 0 1mm 1mm 0; font-size: 8.5pt; }
+        .split .narrow { width: 36%; }
+        .split td + td { padding-left: 4mm; }
+        .h-rule, .h-exec { color: {{ $document['primary'] }}; border-bottom: 0.3mm solid {{ $document['primary'] }}; padding-bottom: 0.6mm; font-size: 10pt; }
+        .h-center { text-align: center; letter-spacing: 1.4px; text-transform: uppercase; font-size: 9pt; font-weight: normal; }
+        .h-hair { font-weight: normal; letter-spacing: 2px; text-transform: uppercase; font-size: 8.5pt; color: #57534e; border-bottom: 0.2mm solid #e7e5e4; }
+        .h-bar { background: {{ $document['primary'] }}; color: #fff; padding: 0.8mm 2mm; font-size: 8.5pt; letter-spacing: 0.6px; text-transform: uppercase; }
+        .h-side { color: #fff; font-size: 8.5pt; letter-spacing: 1px; text-transform: uppercase; border-bottom: 0.2mm solid #d6d3d1; margin-top: 3.5mm; }
+        .h-tech { color: {{ $document['primary'] }}; font-size: 9pt; letter-spacing: 0.6px; text-transform: uppercase; }
+        .layout-corporate .side, .layout-blue .side { width: 34%; padding: 3.5mm; }
+        .layout-corporate .side h1, .layout-corporate .side p, .layout-blue .side h1, .layout-blue .side p { color: #fff; }
+        .layout-corporate .contact-label, .layout-blue .contact-label { color: #e7e5e4; }
+        .layout-corporate .monogram, .layout-blue .monogram { border: 0.4mm solid #fff; margin-bottom: 3mm; }
+        .layout-corporate .photo, .layout-blue .photo { margin-bottom: 3mm; }
+        .layout-blue .tag { background: #fff; color: #1c1917; border-color: #fff; }
+        .layout-blue .job { border-left: 0.7mm solid {{ $document['primary'] }}; padding-left: 2.5mm; }
+        .layout-classic h1 { font-weight: normal; }
+        .layout-classic .photo-cell { text-align: right; }
+        .double-rule { border-top: 0.8mm double {{ $document['accent'] }}; margin: 3mm 0 2mm; }
+        .layout-elegant .band { background: #f4efe8; margin-bottom: 4mm; }
+        .layout-elegant .band td { padding: 3.5mm; }
+        .layout-elegant h1 { font-weight: normal; letter-spacing: 0.6px; }
+        .layout-modern .color-bar { height: 2.2mm; background: {{ $document['primary'] }}; margin: 3mm 0 1mm; }
+        .layout-modern .item { border-left: 0.6mm solid {{ $document['primary'] }}; padding-left: 2.5mm; }
+        .layout-minimal h1 { font-weight: normal; letter-spacing: 2.5px; text-transform: uppercase; }
+        .layout-minimal .photo-circle, .layout-minimal .monogram-circle { width: 22mm; height: 22mm; }
+        .layout-minimal .monogram-circle { line-height: 22mm; }
+        .layout-minimal .photo-cell { text-align: right; }
+        .hairline { border-top: 0.2mm solid #d6d3d1; margin: 4mm 0 2mm; }
+        .layout-executive .exec-head td { padding: 4mm 3mm; color: #fff; }
+        .layout-executive .exec-head h1, .layout-executive .exec-head p { color: #fff; }
+        .layout-executive .kicker { letter-spacing: 1.8px; text-transform: uppercase; font-size: 8pt; }
+        .layout-executive .gold-line { height: 1.1mm; background: {{ $document['accent'] }}; margin: 0 0 4mm; }
+        .layout-executive .monogram { border: 0.4mm solid #fff; }
+        .layout-technical .tech-head { border-bottom: 0.6mm solid {{ $document['primary'] }}; margin-bottom: 3mm; }
+        .layout-technical .tech-head td { padding-bottom: 3mm; }
+        .layout-technical .narrow { background: #f5f5f4; padding: 3mm; }
+        .layout-technical .photo-square, .layout-technical .monogram-square { width: 18mm; height: 18mm; }
+        .layout-technical .monogram-square { line-height: 18mm; font-size: 10pt; }
+        .skill-row td { padding: 0.4mm 0; }
     </style>
     @if ($screen ?? false)
         <style>
@@ -69,7 +96,7 @@
         </style>
     @endif
 </head>
-<body class="tpl-{{ $document['slug'] }}@if ($screen ?? false) is-screen @endif @if ($embedded ?? false) is-embedded @endif">
+<body class="tpl-{{ $document['slug'] }} layout-{{ $document['layout'] }}@if ($screen ?? false) is-screen @endif @if ($embedded ?? false) is-embedded @endif">
     @if ($screen ?? false)
         @unless ($embedded ?? false)
             <div class="a4-toolbar">
