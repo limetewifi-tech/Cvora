@@ -4,6 +4,7 @@ namespace App\Services\Documents;
 
 use App\Models\CoverLetter;
 use App\Models\Resume;
+use App\Support\LetterSheet;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Response;
 
@@ -28,7 +29,8 @@ class PdfExporter
     public function letter(CoverLetter $letter): Response
     {
         $pdf = Pdf::loadView('letters.paper', [
-            'letter' => $letter,
+            'sheet' => LetterSheet::from($letter),
+            'title' => $letter->title,
         ])->setPaper('a4');
 
         $pdf->setOption('isRemoteEnabled', false);

@@ -118,8 +118,10 @@ Route::middleware(['auth', 'active', 'verified.if', 'plan'])->group(function () 
 
         Route::get('/lettres', [CoverLetterController::class, 'index'])->name('letters.index');
         Route::get('/lettres/nouvelle', [CoverLetterController::class, 'create'])->name('letters.create');
+        Route::get('/lettres/modeles/{layout}', [CoverLetterController::class, 'sample'])->name('letters.sample');
         Route::post('/lettres', [CoverLetterController::class, 'store'])->name('letters.store');
         Route::get('/lettres/{letter}/modifier', [CoverLetterController::class, 'edit'])->name('letters.edit');
+        Route::get('/lettres/{letter}/apercu', [CoverLetterController::class, 'preview'])->name('letters.preview');
         Route::put('/lettres/{letter}', [CoverLetterController::class, 'update'])->name('letters.update');
         Route::delete('/lettres/{letter}', [CoverLetterController::class, 'destroy'])->name('letters.destroy');
         Route::post('/lettres/{letter}/versions', [CoverLetterController::class, 'snapshot'])->name('letters.versions.store');

@@ -4,6 +4,18 @@
 <table class="layout-side">
     <tr>
         <td class="side">
+            @php
+                $initials = '';
+                foreach (preg_split('/\s+/', trim($document['name'])) ?: [] as $part) {
+                    if ($part !== '') {
+                        $initials .= mb_strtoupper(mb_substr($part, 0, 1));
+                    }
+                }
+                $initials = mb_substr($initials, 0, 2);
+            @endphp
+            @if ($initials !== '')
+                <p class="monogram">{{ $initials }}</p>
+            @endif
             <h1>{{ $document['name'] }}</h1>
             @if ($document['headline'])<p>{{ $document['headline'] }}</p>@endif
             @foreach ($document['contact'] as $line)

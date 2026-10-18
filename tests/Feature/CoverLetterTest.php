@@ -63,6 +63,46 @@ class CoverLetterTest extends TestCase
         $this->assertSame('direct', $letter->fresh()->tone);
     }
 
+    public function test_a_saved_letter_prints_on_a4_without_changing_the_text(): void
+    {
+        $user = $this->makeUser('premium');
+        $body = 'Madame, Monsieur, je présente ma candidature pour le poste indiqué.';
+        $letter = $user->coverLetters()->create([
+            'title' => 'Lettre A4',
+            'company' => 'Banque exemple',
+            'position' => 'Analyste',
+            'tone' => 'professionnel',
+            'length' => 'standard',
+            'layout' => 'bandeau',
+            'body' => $body,
+        ]);
+
+        $this->actingAs($user)->get(route('letters.index'))
+            ->assertOk()
+            ->assertSee('Classique')
+            ->assertSee('Bandeau')
+            ->assertSee('Élégant');
+
+        $this->get(route('letters.sample', 'classique'))
+            ->assertOk()
+            ->assertSee('size: A4 portrait', false)
+            ->assertSee('210mm', false)
+            ->assertSee('Le texte de votre lettre apparaît ici.');
+
+        $this->get(route('letters.preview', $letter).'?cadre=1')
+            ->assertOk()
+            ->assertSee('layout-bandeau', false)
+            ->assertSee($body)
+            ->assertSee('Amina')
+            ->assertSee('Banque exemple')
+            ->assertSee('Objet : candidature au poste de Analyste');
+
+        $pdf = app(\App\Services\Documents\PdfExporter::class)->letter($letter)->getContent();
+        $this->assertStringStartsWith('%PDF-', $pdf);
+        $this->assertGreaterThan(1000, strlen($pdf));
+        $this->assertSame($body, $letter->fresh()->body);
+    }
+
     public function test_free_plan_cannot_create_a_cover_letter(): void
     {
         $user = $this->makeUser();

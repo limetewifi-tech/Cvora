@@ -37,6 +37,7 @@
         .tpl-etudiant h2 { background: {{ $document['primary'] }}; color: #fff; padding: 2px 8px; }
         .layout-side, .layout-cols { width: 100%; border-collapse: collapse; }
         .layout-side td, .layout-cols td { vertical-align: top; }
+        .monogram { width: 42px; height: 42px; line-height: 42px; text-align: center; border: 2px solid #fff; font-weight: bold; margin: 0 0 8px; }
         .tpl-experimente .side { width: 32%; background: {{ $document['primary'] }}; color: #fff; padding: 14px 12px; }
         .tpl-experimente .side h1, .tpl-experimente .side h2, .tpl-experimente .side p { color: #fff; }
         .tpl-experimente .side h2 { border: 0; margin-top: 12px; font-size: 10pt; }

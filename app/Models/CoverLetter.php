@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-#[Fillable(['user_id', 'resume_id', 'job_offer_id', 'title', 'company', 'position', 'tone', 'length', 'body', 'lock_version'])]
+#[Fillable(['user_id', 'resume_id', 'job_offer_id', 'title', 'company', 'position', 'tone', 'length', 'layout', 'body', 'lock_version'])]
 class CoverLetter extends Model
 {
     use OwnedByUser;
