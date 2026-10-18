@@ -76,6 +76,17 @@
         .layout-technical .photo-square, .layout-technical .monogram-square { width: 18mm; height: 18mm; }
         .layout-technical .monogram-square { line-height: 18mm; font-size: 10pt; }
         .skill-row td { padding: 0.4mm 0; }
+        .density-roomy .section { margin-bottom: 3.8mm; }
+        .density-roomy h2 { margin-top: 1.5mm; margin-bottom: 1.5mm; }
+        .density-roomy .item, .density-roomy .job { margin-bottom: 3mm; }
+        .density-roomy .contact-line { margin-bottom: 2.4mm; }
+        .density-balanced .section { margin-bottom: 2mm; }
+        .density-balanced .item, .density-balanced .job { margin-bottom: 2.2mm; }
+        .density-compact h2 { margin-top: 6pt; margin-bottom: 2pt; }
+        .density-compact .section { margin-bottom: 1pt; }
+        .density-compact .item, .density-compact .job { margin-bottom: 4pt; }
+        .density-roomy.layout-corporate .split td,
+        .density-roomy.layout-blue .split td { height: 250mm; }
     </style>
     @if ($screen ?? false)
         <style>
@@ -96,7 +107,7 @@
         </style>
     @endif
 </head>
-<body class="tpl-{{ $document['slug'] }} layout-{{ $document['layout'] }}@if ($screen ?? false) is-screen @endif @if ($embedded ?? false) is-embedded @endif">
+<body class="tpl-{{ $document['slug'] }} layout-{{ $document['layout'] }} density-{{ $document['density'] ?? 'balanced' }}@if ($screen ?? false) is-screen @endif @if ($embedded ?? false) is-embedded @endif">
     @if ($screen ?? false)
         @unless ($embedded ?? false)
             <div class="a4-toolbar">
@@ -115,10 +126,12 @@
                     var sheet = document.querySelector('.a4-sheet');
                     var fit = function () {
                         if (!sheet) return;
+                        var width = document.documentElement.clientWidth;
+                        if (width < 40) return;
                         var pageWidth = 210 * 96 / 25.4;
+                        var scale = width / pageWidth;
                         sheet.style.width = '210mm';
                         sheet.style.minHeight = '297mm';
-                        var scale = Math.max(0.2, document.documentElement.clientWidth / pageWidth);
                         sheet.style.transform = 'scale(' + scale + ')';
                         sheet.style.transformOrigin = 'top left';
                         document.body.style.margin = '0';
@@ -126,6 +139,7 @@
                         document.body.style.overflow = 'hidden';
                     };
                     fit();
+                    window.addEventListener('load', fit);
                     window.addEventListener('resize', fit);
                 }());
             </script>

@@ -52,7 +52,9 @@
                         var pageWidth = 210 * 96 / 25.4;
                         sheet.style.width = '210mm';
                         sheet.style.minHeight = '297mm';
-                        var scale = Math.max(0.2, document.documentElement.clientWidth / pageWidth);
+                        var width = document.documentElement.clientWidth;
+                        if (width < 40) return;
+                        var scale = width / pageWidth;
                         sheet.style.transform = 'scale(' + scale + ')';
                         sheet.style.transformOrigin = 'top left';
                         document.body.style.margin = '0';
@@ -60,6 +62,7 @@
                         document.body.style.overflow = 'hidden';
                     };
                     fit();
+                    window.addEventListener('load', fit);
                     window.addEventListener('resize', fit);
                 }());
             </script>

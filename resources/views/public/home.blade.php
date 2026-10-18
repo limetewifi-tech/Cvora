@@ -1,142 +1,56 @@
 @extends('layouts.public')
+@section('document-title', 'CVora — Vos candidatures, plus simples')
 @section('content')
-    <section class="cvora-hero">
-        <div class="container py-5">
-            <div class="row align-items-center g-5">
-                <div class="col-lg-6">
-                    <p class="cvora-kicker mb-3">Galerie CVora</p>
-                    <h1 class="display-5 fw-semibold">Choisissez un modèle, puis remplissez votre CV.</h1>
-                    <p class="lead text-secondary mt-3">Parcourez les mises en page, ouvrez celle qui vous convient, et gardez vos textes si vous en changez ensuite. L'assistant reformule seulement ce que vous validez.</p>
-                    <div class="d-grid gap-2 d-sm-flex mt-4">
-                        <a class="btn btn-primary" href="{{ route('templates.index') }}">Voir les modèles</a>
-                        <a class="btn btn-outline-primary" href="{{ route('register') }}">Créer un compte</a>
-                    </div>
-                </div>
-                <div class="col-lg-6">
-                    <div class="card overflow-hidden">
-                        <div class="d-flex align-items-center gap-2 border-bottom px-3 py-2">
-                            <span class="cvora-dot cvora-dot-red rounded-circle"></span>
-                            <span class="cvora-dot cvora-dot-amber rounded-circle"></span>
-                            <span class="cvora-dot cvora-dot-green rounded-circle"></span>
-                            <span class="small text-secondary ms-2">Aperçu de mise en page</span>
-                        </div>
-                        <div class="cvora-preview-frame">
-                            <div class="cvora-preview-side">
-                                <p class="cvora-heading h5 mb-1">Prénom Nom</p>
-                                <p class="cvora-preview-muted small mb-3">Intitulé du poste</p>
-                                <p class="small mb-0">Kinshasa<br>exemple@mail.fr</p>
-                            </div>
-                            <div class="p-3">
-                                <p class="small fw-semibold text-uppercase text-primary mb-2">Profil</p>
-                                <div class="cvora-skeleton mb-2"></div>
-                                <div class="cvora-skeleton w-75 mb-3"></div>
-                                <p class="small fw-semibold text-uppercase text-primary mb-2">Expérience</p>
-                                <p class="fw-semibold mb-1">Poste exemple</p>
-                                <p class="small text-secondary">Organisation exemple · 2023 — 2024</p>
-                                <div class="cvora-skeleton"></div>
-                            </div>
-                        </div>
-                        <p class="border-top mb-0 px-3 py-2 small text-secondary">Exemple de mise en page, avec des données fictives.</p>
-                    </div>
-                </div>
+    <section class="container py-4 py-lg-5">
+        <h1 class="cvora-home-title mb-3">Vos candidatures, plus simples avec CVora.</h1>
+        <p class="lead text-secondary mb-4 mb-lg-5">Créez votre CV, améliorez votre parcours avec l'IA et rédigez vos lettres en quelques minutes.</p>
+
+        <div class="row g-3 g-lg-4">
+            <div class="col-lg-4">
+                <article class="cvora-action">
+                    <span class="cvora-action-icon" aria-hidden="true"><i class="bi bi-file-earmark-plus"></i></span>
+                    <h2 class="h4 mt-3">Créer un CV</h2>
+                    <p class="text-secondary">Choisissez un modèle professionnel et créez un CV adapté à votre parcours.</p>
+                    <a class="btn btn-primary mt-auto" href="{{ route('cvs.create') }}">Créer mon CV</a>
+                </article>
+            </div>
+            <div class="col-lg-4">
+                <article class="cvora-action">
+                    <span class="cvora-action-icon" aria-hidden="true"><i class="bi bi-stars"></i></span>
+                    <h2 class="h4 mt-3">Améliorer mon CV avec l'IA</h2>
+                    <p class="text-secondary">Importez votre CV existant et améliorez sa présentation ainsi que son contenu avec l'aide de l'IA.</p>
+                    <a class="btn btn-primary mt-auto" href="{{ route('imports.create') }}">Améliorer mon CV</a>
+                </article>
+            </div>
+            <div class="col-lg-4">
+                <article class="cvora-action">
+                    <span class="cvora-action-icon" aria-hidden="true"><i class="bi bi-envelope-paper"></i></span>
+                    <h2 class="h4 mt-3">Créer une lettre avec l'IA</h2>
+                    <p class="text-secondary">Générez une lettre de motivation personnalisée pour le poste que vous souhaitez obtenir.</p>
+                    <a class="btn btn-primary mt-auto" href="{{ route('letters.create') }}">Générer ma lettre</a>
+                </article>
             </div>
         </div>
-    </section>
 
-    <section class="cvora-band py-5" id="fonctionnalites">
-        <div class="container">
-            <h2 class="h1">Ce que vous pouvez faire</h2>
-            <div class="row g-3 mt-2">
-                @foreach ([
-                    ['bi-file-earmark-richtext', 'Création de CV professionnels', 'Un éditeur guidé, du résumé aux références, avec aperçu immédiat.'],
-                    ['bi-upload', 'Importation et actualisation', 'Importez un PDF texte ou un Word, corrigez les champs détectés, puis enregistrez.'],
-                    ['bi-envelope-paper', 'Lettres de motivation', 'Rédigez à partir de votre CV et de l\'offre, puis relisez avant d\'enregistrer.'],
-                    ['bi-bullseye', 'Adaptation à une offre', 'Comparez les compétences demandées à votre profil, sans rien ajouter en silence.'],
-                    ['bi-download', 'Téléchargement PDF et Word', 'Exportez un fichier lisible, avec les accents français, selon votre offre.'],
-                    ['bi-copy', 'Plusieurs versions', 'Dupliquez un CV et conservez une version de secours avant d\'appliquer une proposition.'],
-                ] as [$icon, $title, $text])
-                    <div class="col-md-6 col-lg-4">
-                        <article class="card h-100">
-                            <div class="card-body">
-                                <i class="bi {{ $icon }} fs-4 text-primary" aria-hidden="true"></i>
-                                <h3 class="h5 mt-3">{{ $title }}</h3>
-                                <p class="mb-0 text-secondary">{{ $text }}</p>
-                            </div>
-                        </article>
-                    </div>
-                @endforeach
-            </div>
-        </div>
-    </section>
-
-    <section class="py-5">
-        <div class="container">
-            <div class="d-flex align-items-end justify-content-between gap-3 mb-3">
-                <h2 class="h1 mb-0">Modèles</h2>
-                <a class="fw-semibold" href="{{ route('templates.index') }}">Toute la galerie</a>
-            </div>
-            @include('public.partials.gallery', ['templates' => $templates])
-        </div>
-    </section>
-
-    <section class="py-5">
-        <div class="container">
-            <h2 class="h1">Trois étapes</h2>
-            <ol class="row g-3 list-unstyled mt-2">
-                @foreach ([
-                    ['1', 'Créez votre compte', 'Choisissez un modèle. Votre profil préremplit les nouveaux CV.'],
-                    ['2', 'Complétez ou importez', 'Saisissez votre parcours ou vérifiez les données extraites d\'un fichier.'],
-                    ['3', 'Relisez et téléchargez', 'Ajustez les propositions, puis exportez selon les limites de votre offre.'],
-                ] as [$n, $title, $text])
-                    <li class="col-md-4">
-                        <article class="card h-100">
-                            <div class="card-body">
-                                <span class="cvora-step-index d-inline-flex align-items-center justify-content-center rounded-circle bg-primary text-white fw-semibold">{{ $n }}</span>
-                                <h3 class="h5 mt-3">{{ $title }}</h3>
-                                <p class="mb-0 text-secondary">{{ $text }}</p>
-                            </div>
-                        </article>
-                    </li>
-                @endforeach
-            </ol>
-        </div>
-    </section>
-
-    <section class="cvora-band py-5" id="tarifs">
-        <div class="container">
-            <h2 class="h1">Tarifs</h2>
-            <p class="text-secondary">Les prix et les quotas viennent de la base de données. Un administrateur peut les modifier. Aucun montant n'est figé dans le code.</p>
-            @include('public.partials.plans', ['plans' => $plans])
-        </div>
-    </section>
-
-    <section class="py-5">
-        <div class="container cvora-prose">
-            <h2 class="h1">Questions fréquentes</h2>
-            <div class="accordion mt-4" id="faq">
-                @foreach ($faqs as $faq)
-                    <div class="accordion-item">
-                        <h3 class="accordion-header">
-                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq-{{ $loop->index }}" aria-expanded="false" aria-controls="faq-{{ $loop->index }}">
-                                {{ $faq['q'] }}
-                            </button>
-                        </h3>
-                        <div id="faq-{{ $loop->index }}" class="accordion-collapse collapse" data-bs-parent="#faq">
-                            <div class="accordion-body text-secondary">{{ $faq['a'] }}</div>
-                        </div>
-                    </div>
-                @endforeach
-            </div>
-        </div>
-    </section>
-
-    <section class="pb-5">
-        <div class="container">
-            <div class="cvora-cta px-4 py-5 px-sm-5">
-                <h2 class="h1">Préparez votre prochaine candidature.</h2>
-                <p class="cvora-cta-note mt-3 mb-0">Créez un compte, choisissez un modèle et gardez la main sur chaque formulation.</p>
-                <a class="btn btn-light text-primary mt-4" href="{{ route('register') }}">Créer mon CV gratuitement</a>
-            </div>
+        <div class="mt-4 mt-lg-5">
+            @if ($documents->isNotEmpty())
+                <h2 class="h5 mb-3">Vos derniers documents</h2>
+                <ul class="list-unstyled row g-2 mb-0">
+                    @foreach ($documents as $document)
+                        <li class="col-md-6">
+                            <a class="cvora-doc d-flex align-items-center justify-content-between gap-3" href="{{ $document['href'] }}">
+                                <span>
+                                    <span class="small text-secondary">{{ $document['kind'] }}</span>
+                                    <span class="d-block fw-semibold">{{ $document['title'] }}</span>
+                                </span>
+                                <span class="small text-secondary text-nowrap">{{ $document['updated_at']?->translatedFormat('j M Y') }}</span>
+                            </a>
+                        </li>
+                    @endforeach
+                </ul>
+            @else
+                <p class="cvora-welcome mb-0">Bienvenue. Commencez par l'une de ces trois actions.</p>
+            @endif
         </div>
     </section>
 @endsection
