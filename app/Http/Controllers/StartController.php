@@ -60,7 +60,7 @@ class StartController extends Controller
             $resume->forceFill(['personal' => ResumeContent::normalizePersonal($personal)])->save();
         }
 
-        return redirect()->route('cvs.edit', $resume)->with('success', 'Le CV est créé avec le modèle '.$template->name.'. L\'aperçu A4 est à côté du formulaire. Complétez les parties encore ouvertes, ou demandez une reformulation à l\'assistant.');
+        return redirect()->route('cvs.edit', ['resume' => $resume, 'wizard' => 1, 'wizard_step' => 1])->with('success', 'Le CV est créé avec le modèle '.$template->name.'. L\'aperçu A4 est à côté du formulaire. Passez à l\'étape suivante quand cette partie est remplie.');
     }
 
     private function template($user, QuotaService $quota): ?ResumeTemplate

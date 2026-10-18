@@ -68,7 +68,7 @@
                         <p class="small text-secondary mb-0">{{ $resume->template?->name }}</p>
                     </div>
                     <div class="d-flex flex-wrap gap-2">
-                        <a class="btn btn-outline-primary" href="{{ route('cvs.edit', $resume) }}">Continuer</a>
+                        <a class="btn btn-outline-primary" href="{{ route('cvs.edit', ['resume' => $resume, 'wizard' => 1, 'wizard_step' => 1]) }}">Continuer</a>
                         <a class="btn btn-primary" href="{{ route('assistant.index', ['cv' => $resume->id]) }}">Demander à l'assistant</a>
                     </div>
                 </div>

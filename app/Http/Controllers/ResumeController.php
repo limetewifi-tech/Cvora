@@ -60,7 +60,7 @@ class ResumeController extends Controller
             return $this->fail($request, $exception, route('cvs.create'));
         }
 
-        return redirect()->route('cvs.edit', $resume)->with('success', 'Votre CV a été créé. Les informations du profil ont été reprises lorsqu\'elles existaient.');
+        return redirect()->route('cvs.edit', ['resume' => $resume, 'wizard' => 1, 'wizard_step' => 1])->with('success', 'Votre CV est créé. Complétez-le étape par étape. L\'aperçu A4 se met à jour après l\'enregistrement.');
     }
 
     public function preferTemplate(Request $request, Resume $resume)
@@ -120,6 +120,8 @@ class ResumeController extends Controller
             'checks' => ResumeReadiness::checks($form),
             'credits' => app(QuotaService::class)->creditsRemaining($request->user()),
             'versions' => $resume->versions()->latest()->limit(12)->get(),
+            'wizard' => $request->boolean('wizard'),
+            'wizardStep' => max(1, min(6, (int) $request->query('wizard_step', 1))),
         ]);
     }
 
@@ -141,7 +143,7 @@ class ResumeController extends Controller
             ]);
         }
 
-        return redirect()->route('cvs.edit', $resume)->with('success', 'CV enregistré.');
+        return $this->backToEditor($request, $resume)->with('success', 'CV enregistré.');
     }
 
     public function delete(Resume $resume)
@@ -204,6 +206,18 @@ class ResumeController extends Controller
         }
 
         return redirect()->route('cvs.edit', $resume)->with('success', 'La proposition confirmée a été appliquée. La version précédente est conservée.');
+    }
+
+    private function backToEditor(Request $request, Resume $resume)
+    {
+        $parameters = ['resume' => $resume];
+
+        if ($request->boolean('wizard')) {
+            $parameters['wizard'] = 1;
+            $parameters['wizard_step'] = max(1, min(6, (int) $request->input('wizard_step', 1)));
+        }
+
+        return redirect()->route('cvs.edit', $parameters);
     }
 
     private function formState(Resume $resume, Request $request): array

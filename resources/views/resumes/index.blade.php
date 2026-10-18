@@ -17,7 +17,8 @@
                         <p class="small text-secondary mb-0">{{ $resume->template?->name }} · modifié {{ $resume->updated_at?->timezone(config('app.timezone'))->format('d/m/Y H:i') }}</p>
                     </div>
                     <div class="d-flex flex-wrap gap-2">
-                        <a class="btn btn-outline-primary" href="{{ route('cvs.edit', $resume) }}">Modifier</a>
+                        <a class="btn btn-primary" href="{{ route('cvs.edit', ['resume' => $resume, 'wizard' => 1, 'wizard_step' => 1]) }}">Étape par étape</a>
+                        <a class="btn btn-outline-primary" href="{{ route('cvs.edit', $resume) }}">Éditeur</a>
                         <a class="btn btn-outline-primary" href="{{ route('cvs.preview', $resume) }}" target="_blank" rel="noopener">Aperçu</a>
                         <form method="POST" action="{{ route('cvs.duplicate', $resume) }}">@csrf<button class="btn btn-outline-secondary" type="submit">Dupliquer</button></form>
                     </div>

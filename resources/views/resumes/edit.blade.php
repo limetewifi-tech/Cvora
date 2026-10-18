@@ -2,6 +2,27 @@
 @section('document-title', $resume->title)
 @section('content')
     @php
+        $wizard = $wizard ?? false;
+        $wizardStep = $wizard ? (int) ($wizardStep ?? 1) : 1;
+        $wizardMeta = [
+            1 => ['Profil', 'Indiquez vos informations personnelles.'],
+            2 => ['Expériences', 'Ajoutez chaque poste, avec l\'employeur, les dates et ce que vous y avez fait.'],
+            3 => ['Formations', 'Indiquez vos diplômes et vos formations.'],
+            4 => ['Compétences', 'Listez les compétences que vous pouvez justifier.'],
+            5 => ['Résumé professionnel', 'Résumez votre parcours à partir des faits déjà saisis.'],
+            6 => ['Autres rubriques', 'Langues, certifications, projets, puis le modèle et les couleurs.'],
+        ];
+        $wizardSections = [
+            'experiences' => 2,
+            'education' => 3,
+            'skills' => 4,
+            'languages' => 6,
+            'certifications' => 6,
+            'projects' => 6,
+            'interests' => 6,
+            'references' => 6,
+        ];
+        $wizardUrl = fn (int $step) => route('cvs.edit', ['resume' => $resume, 'wizard' => 1, 'wizard_step' => $step]);
         $steps = [
             'identite' => 'Informations personnelles',
             'resume' => 'Résumé professionnel',
@@ -17,10 +38,15 @@
     @endphp
     <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-3">
         <div>
-            <h1 class="h2 mb-1">Éditeur</h1>
-            <p class="small text-secondary mb-0" data-save-status>Les modifications de texte sont enregistrées automatiquement.</p>
+            <h1 class="h2 mb-1">@if ($wizard) Étape {{ $wizardStep }} sur 6 @else Éditeur @endif</h1>
+            <p class="small text-secondary mb-0" data-save-status>@if ($wizard) {{ $wizardMeta[$wizardStep][0] }}. {{ $wizardMeta[$wizardStep][1] }} Les modifications de texte sont enregistrées automatiquement. @else Les modifications de texte sont enregistrées automatiquement. @endif</p>
         </div>
         <div class="d-flex flex-wrap gap-2">
+            @if ($wizard)
+                <a class="btn btn-outline-primary" href="{{ route('cvs.edit', $resume) }}">Éditeur complet</a>
+            @else
+                <a class="btn btn-outline-primary" href="{{ $wizardUrl(1) }}">Mode étape par étape</a>
+            @endif
             <a class="btn btn-outline-primary" href="{{ route('assistant.index', ['cv' => $resume->id]) }}">Améliorer avec l'IA</a>
             <a class="btn btn-outline-primary" href="{{ route('cvs.preview', $resume) }}" target="_blank" rel="noopener">Format A4</a>
             @if ($quota->allows(auth()->user(), 'export_pdf'))
@@ -33,16 +59,24 @@
     @if (session('suggestion'))
         <div class="alert alert-warning">Proposition non appliquée : {{ session('suggestion') }}</div>
     @endif
-    <div class="card mb-4">
-        <div class="card-body">
-            <p class="small mb-2" data-editor-progress-label>Progression du CV</p>
-            <div class="progress" data-editor-progress role="progressbar" aria-label="Étapes renseignées" aria-valuemin="0" aria-valuemax="10" aria-valuenow="0">
-                <div class="progress-bar"></div>
+    @unless ($wizard)
+        <div class="card mb-4">
+            <div class="card-body">
+                <p class="small mb-2" data-editor-progress-label>Progression du CV</p>
+                <div class="progress" data-editor-progress role="progressbar" aria-label="Étapes renseignées" aria-valuemin="0" aria-valuemax="10" aria-valuenow="0">
+                    <div class="progress-bar"></div>
+                </div>
             </div>
         </div>
-    </div>
-    <div class="row g-4">
-        <div class="col-xl-8">
+    @endunless
+    @if ($wizard)
+        <div class="d-xl-none d-flex gap-2 mb-3" role="group" aria-label="Affichage">
+            <button class="btn btn-primary" type="button" data-wizard-pane-target="form" aria-pressed="true">Formulaire</button>
+            <button class="btn btn-outline-primary" type="button" data-wizard-pane-target="preview" aria-pressed="false">Aperçu</button>
+        </div>
+    @endif
+    <div class="row g-4" @if ($wizard) data-wizard data-wizard-pane="form" @endif>
+        <div class="{{ $wizard ? 'col-xl-6' : 'col-xl-8' }}" @if ($wizard) data-wizard-form @endif>
             <form id="resume-form" method="POST" action="{{ route('cvs.update', $resume) }}" data-autosave="{{ route('cvs.update', $resume) }}" class="vstack gap-4">
                 @csrf
                 @method('PUT')
@@ -50,16 +84,38 @@
                 @foreach (\App\Support\ResumeContent::sections() as $section)
                     <input type="hidden" name="sections_present[]" value="{{ $section }}">
                 @endforeach
-                <div class="d-flex gap-2 overflow-auto pb-1">
-                    @foreach ($steps as $id => $label)
-                        <button type="button" class="btn btn-sm btn-outline-primary cvora-step" data-step="{{ $id }}">{{ $label }}</button>
-                    @endforeach
-                </div>
-                <div class="form-check">
-                    <input class="form-check-input" type="checkbox" id="hide-done" data-hide-done checked>
-                    <label class="form-check-label" for="hide-done">Afficher seulement ce qui reste</label>
-                </div>
-                <section id="identite" class="card" data-editor-section data-section-group="identite">
+                @if ($wizard)
+                    <input type="hidden" name="wizard" value="1">
+                    <input type="hidden" name="wizard_step" value="{{ $wizardStep }}">
+                    <nav class="d-flex flex-wrap gap-2" aria-label="Étapes du CV">
+                        @foreach ($wizardMeta as $number => $meta)
+                            <a class="btn btn-sm {{ $number === $wizardStep ? 'btn-primary' : 'btn-outline-primary' }} cvora-step" href="{{ $wizardUrl($number) }}" data-wizard-go @if ($number === $wizardStep) aria-current="step" @endif>{{ $number }}. {{ $meta[0] }}</a>
+                        @endforeach
+                    </nav>
+                    <div class="progress" role="progressbar" aria-label="Étape {{ $wizardStep }} sur 6" aria-valuemin="1" aria-valuemax="6" aria-valuenow="{{ $wizardStep }}">
+                        <div class="progress-bar" style="width: {{ (int) round($wizardStep / 6 * 100) }}%"></div>
+                    </div>
+                    @if ($wizardStep === 1)
+                        <section class="card border-primary" data-wizard-panel="1">
+                            <div class="card-body vstack gap-2">
+                                <h2 class="h5 mb-0">Importer mon CV</h2>
+                                <p class="small text-secondary mb-0">Téléchargez un PDF ou un document Word. Les informations reconnues sont proposées pour un nouveau CV. Rien n'est enregistré tant que vous ne validez pas chaque champ.</p>
+                                <div><a class="btn btn-outline-primary" href="{{ route('imports.create') }}">Importer mon CV</a></div>
+                            </div>
+                        </section>
+                    @endif
+                @else
+                    <div class="d-flex gap-2 overflow-auto pb-1">
+                        @foreach ($steps as $id => $label)
+                            <button type="button" class="btn btn-sm btn-outline-primary cvora-step" data-step="{{ $id }}">{{ $label }}</button>
+                        @endforeach
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="hide-done" data-hide-done checked>
+                        <label class="form-check-label" for="hide-done">Afficher seulement ce qui reste</label>
+                    </div>
+                @endif
+                <section id="identite" class="card" data-editor-section data-section-group="identite" data-wizard-step="1"@if ($wizard && $wizardStep !== 1) hidden @endif>
                     <div class="card-body vstack gap-3">
                         <div class="d-flex flex-wrap align-items-center justify-content-between gap-2">
                             <h2 class="h5 mb-0">1. Informations personnelles</h2>
@@ -82,7 +138,7 @@
                         </div>
                     </div>
                 </section>
-                <section id="resume" class="card" data-editor-section data-section-group="resume">
+                <section id="resume" class="card" data-editor-section data-section-group="resume" data-wizard-step="5"@if ($wizard && $wizardStep !== 5) hidden @endif>
                     <div class="card-body vstack gap-3">
                         <div class="d-flex flex-wrap align-items-center justify-content-between gap-2">
                             <h2 class="h5 mb-0">2. Résumé professionnel</h2>
@@ -101,7 +157,7 @@
                 </section>
                 @php $stepNo = 3; @endphp
                 @foreach (\App\Support\ResumeContent::sections() as $section)
-                    <section id="{{ $section }}" class="card" data-editor-section @if (in_array($section, ['experiences', 'education', 'skills'], true)) data-section-group="{{ $section }}" @else data-section-mode="optional" @endif>
+                    <section id="{{ $section }}" class="card" data-editor-section @if (in_array($section, ['experiences', 'education', 'skills'], true)) data-section-group="{{ $section }}" @else data-section-mode="optional" @endif data-wizard-step="{{ $wizardSections[$section] }}"@if ($wizard && $wizardStep !== $wizardSections[$section]) hidden @endif>
                         <div class="card-body vstack gap-3">
                             <div class="d-flex align-items-center justify-content-between gap-3">
                                 <h2 class="h5 mb-0">{{ $stepNo }}. {{ \App\Support\ResumeContent::labels()[$section]['fr'] }}</h2>
@@ -163,7 +219,7 @@
                     </section>
                     @php $stepNo++; @endphp
                 @endforeach
-                <section class="card">
+                <section class="card" data-wizard-step="6"@if ($wizard && $wizardStep !== 6) hidden @endif>
                     <div class="card-body vstack gap-3">
                         <h2 class="h5">Modèle et couleurs</h2>
                         <div>
@@ -197,11 +253,25 @@
                         <p class="small text-secondary mb-0" data-prefer-status>Le modèle retenu est proposé à la création des prochains CV.</p>
                     </div>
                 </section>
+                @if ($wizard)
+                    <div class="d-flex flex-wrap justify-content-between gap-2">
+                        @if ($wizardStep > 1)
+                            <a class="btn btn-outline-primary" href="{{ $wizardUrl($wizardStep - 1) }}" data-wizard-go>Précédent</a>
+                        @else
+                            <span></span>
+                        @endif
+                        @if ($wizardStep < 6)
+                            <a class="btn btn-primary" href="{{ $wizardUrl($wizardStep + 1) }}" data-wizard-go>Suivant</a>
+                        @else
+                            <button class="btn btn-primary" type="submit" data-loading>Enregistrer le CV</button>
+                        @endif
+                    </div>
+                @endif
             </form>
         </div>
-        <aside class="col-xl-4">
+        <aside class="{{ $wizard ? 'col-xl-6' : 'col-xl-4' }}" @if ($wizard) data-wizard-preview @endif>
             <div class="cvora-preview-sticky vstack gap-3">
-                <div class="card overflow-hidden">
+                <div class="card cvora-a4-card">
                     <div class="d-flex align-items-center justify-content-between gap-2 border-bottom px-3 py-2">
                         <p class="mb-0 small fw-semibold">Aperçu A4</p>
                         <a class="small" href="{{ route('cvs.preview', $resume) }}" target="_blank" rel="noopener">Ouvrir</a>
@@ -211,6 +281,11 @@
                     </div>
                     <p class="small text-secondary mb-0 px-3 py-2">Première page, 210 × 297 mm. L'aperçu se recharge après l'enregistrement automatique.</p>
                 </div>
+                @if ($wizard)
+                    <details class="card">
+                        <summary class="px-3 py-2">Aide, checklist et export</summary>
+                        <div class="vstack gap-3 p-3 pt-0">
+                @endif
                 <section class="card" data-proofread data-proofread-url="{{ route('cvs.proofread', $resume) }}">
                     <div class="card-body vstack gap-2">
                         <h2 class="h6 mb-0">Français du CV</h2>
@@ -268,6 +343,10 @@
                         @endif
                     </div>
                 </div>
+                @if ($wizard)
+                        </div>
+                    </details>
+                @endif
             </div>
         </aside>
     </div>

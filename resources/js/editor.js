@@ -287,6 +287,10 @@ if (form) {
     };
 
     const filterSections = () => {
+        if (document.querySelector('[data-wizard]')) {
+            return;
+        }
+
         const hide = document.querySelector('[data-hide-done]')?.checked;
 
         document.querySelectorAll('[data-editor-section]').forEach((section) => {
@@ -623,4 +627,37 @@ if (form) {
     filterSections();
     fitPreview();
     refreshProgress();
+
+    const wizard = document.querySelector('[data-wizard]');
+
+    if (wizard) {
+        document.querySelectorAll('[data-editor-section] [data-section-body]').forEach((body) => {
+            body.hidden = false;
+        });
+        document.querySelectorAll('[data-editor-section] [data-section-note], [data-editor-section] [data-section-open]').forEach((node) => {
+            node.hidden = true;
+        });
+
+        document.querySelectorAll('[data-wizard-go]').forEach((link) => {
+            link.addEventListener('click', async (event) => {
+                event.preventDefault();
+                clearTimeout(timer);
+                await save();
+                window.location.assign(link.href);
+            });
+        });
+
+        document.querySelectorAll('[data-wizard-pane-target]').forEach((button) => {
+            button.addEventListener('click', () => {
+                const pane = button.dataset.wizardPaneTarget === 'preview' ? 'preview' : 'form';
+                wizard.dataset.wizardPane = pane;
+                document.querySelectorAll('[data-wizard-pane-target]').forEach((item) => {
+                    const active = item.dataset.wizardPaneTarget === pane;
+                    item.classList.toggle('btn-primary', active);
+                    item.classList.toggle('btn-outline-primary', !active);
+                    item.setAttribute('aria-pressed', active ? 'true' : 'false');
+                });
+            });
+        });
+    }
 }

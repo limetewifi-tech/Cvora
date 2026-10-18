@@ -394,6 +394,11 @@ pre {
     border-color: #2563eb;
 }
 
+.cvora-a4-card {
+    flex-shrink: 0;
+    overflow: hidden;
+}
+
 .cvora-a4-frame {
     position: relative;
     box-sizing: content-box;
@@ -550,6 +555,16 @@ pre {
         top: 5.5rem;
         max-height: calc(100vh - 6.5rem);
         overflow: auto;
+    }
+}
+
+@media (max-width: 1199.98px) {
+    [data-wizard][data-wizard-pane="form"] [data-wizard-preview] {
+        display: none;
+    }
+
+    [data-wizard][data-wizard-pane="preview"] [data-wizard-form] {
+        display: none;
     }
 }
 
