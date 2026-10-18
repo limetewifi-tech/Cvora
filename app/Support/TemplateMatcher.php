@@ -26,21 +26,21 @@ class TemplateMatcher
         if ($education > 0 && $experiences === 0) {
             return [
                 'slug' => 'etudiant',
-                'reason' => 'La formation est présente et aucune expérience n\'est détectée. Le modèle Créatif met la formation en avant.'.$note,
+                'reason' => 'La formation est présente et aucune expérience n\'est détectée. Le modèle Bleu professionnel met la formation en avant.'.$note,
             ];
         }
 
         if ($skills >= 4 && $premiumAllowed) {
             return [
                 'slug' => 'technique',
-                'reason' => 'Plusieurs compétences sont détectées. Le modèle Deux colonnes les place à part.'.$note,
+                'reason' => 'Plusieurs compétences sont détectées. Le modèle Technique les place à part.'.$note,
             ];
         }
 
         if ($experiences >= 2 && $premiumAllowed) {
             return [
                 'slug' => 'experimente',
-                'reason' => 'Au moins deux expériences sont détectées. Le modèle Colonne latérale convient à un parcours déjà long.'.$note,
+                'reason' => 'Au moins deux expériences sont détectées. Le modèle Corporate convient à un parcours déjà long.'.$note,
             ];
         }
 
@@ -77,7 +77,6 @@ class TemplateMatcher
     }
 
     /**
-     * @param  mixed  $rows
      * @param  array<int, string>  $keys
      */
     private static function filled(mixed $rows, array $keys): int

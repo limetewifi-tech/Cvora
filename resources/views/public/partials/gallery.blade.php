@@ -27,11 +27,11 @@
                     <p class="small mb-3">{{ $template->is_premium ? 'Premium' : 'Inclus' }}</p>
                     <div class="d-flex flex-wrap gap-2 mt-auto">
                         @auth
-                            <a class="btn btn-primary btn-sm" href="{{ route('cvs.create', ['modele' => $template->slug]) }}">Utiliser ce modèle</a>
+                            <a class="btn btn-primary btn-sm" href="{{ route('cvs.create', ['modele' => $template->slug]) }}">Choisir ce modèle</a>
                         @else
-                            <a class="btn btn-primary btn-sm" href="{{ route('register') }}">Utiliser ce modèle</a>
+                            <a class="btn btn-primary btn-sm" href="{{ route('register') }}">Choisir ce modèle</a>
                         @endauth
-                        <a class="btn btn-outline-primary btn-sm" href="{{ route('templates.example', $template) }}">Aperçu</a>
+                        <a class="btn btn-outline-primary btn-sm" href="{{ route('templates.example', $template) }}">Aperçu détaillé</a>
                     </div>
                 </div>
             </article>

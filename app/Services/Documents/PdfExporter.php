@@ -7,7 +7,13 @@ use App\Models\Resume;
 use App\Support\LetterSheet;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Response;
+use Illuminate\Support\Str;
 
+/**
+ * Le PDF reprend la vue d'aperçu. DomPDF reste le moteur : il est livré
+ * avec l'application et n'exige pas Chrome sur le serveur. Les photos sont
+ * recadrées avant l'insertion, pour que l'image ne soit ni étirée ni absente.
+ */
 class PdfExporter
 {
     public function __construct(private ResumePresenter $presenter) {}
@@ -41,7 +47,7 @@ class PdfExporter
 
     private function filename(string $title, string $extension): string
     {
-        $slug = \Illuminate\Support\Str::slug($title);
+        $slug = Str::slug($title);
 
         return ($slug !== '' ? $slug : 'document').'.'.$extension;
     }

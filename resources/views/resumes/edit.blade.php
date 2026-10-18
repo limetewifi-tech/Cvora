@@ -139,6 +139,26 @@
                                 </div>
                             @endforeach
                         </div>
+                        <div class="border rounded p-3">
+                            <p class="form-label mb-1">Photo</p>
+                            <p class="small text-secondary">JPEG, PNG ou WebP, 5 Mo maximum. Le recadrage est centré : carré, rectangle ou cercle selon le modèle. Sans photo, les initiales restent affichées.</p>
+                            @if ($resume->photo_path)
+                                <p class="small mb-2">Photo enregistrée. Elle suit le CV dans l'aperçu, le PDF et le document Word.</p>
+                            @else
+                                <p class="small mb-2">Aucune photo pour le moment. L'aperçu affiche {{ $resume->displayName() === 'Prénom Nom' ? 'vos initiales' : 'les initiales' }}.</p>
+                            @endif
+                            <div class="d-flex flex-wrap align-items-center gap-2">
+                                <input class="form-control" id="photo" form="photo-form" type="file" name="photo" accept="image/jpeg,image/png,image/webp" aria-describedby="photo-help">
+                                <button class="btn btn-primary" form="photo-form" type="submit">Enregistrer la photo</button>
+                                @if ($resume->photo_path)
+                                    <button class="btn btn-outline-secondary" form="photo-remove" type="submit">Retirer la photo</button>
+                                @endif
+                            </div>
+                            <p class="small text-secondary mb-0 mt-2" id="photo-help">La photo n'est pas envoyée avec l'enregistrement automatique du texte.</p>
+                            @error('photo')
+                                <p class="text-danger small mb-0 mt-2">{{ $message }}</p>
+                            @enderror
+                        </div>
                         </div>
                     </div>
                 </section>
@@ -276,6 +296,25 @@
                     </div>
                 @endif
             </form>
+            <form id="photo-form" method="POST" action="{{ route('cvs.photo', $resume) }}" enctype="multipart/form-data" hidden>
+                @csrf
+                @if ($wizard)
+                    <input type="hidden" name="wizard" value="1">
+                    <input type="hidden" name="wizard_step" value="1">
+                @else
+                    <input type="hidden" name="complet" value="1">
+                @endif
+            </form>
+            <form id="photo-remove" method="POST" action="{{ route('cvs.photo.destroy', $resume) }}" hidden>
+                @csrf
+                @method('DELETE')
+                @if ($wizard)
+                    <input type="hidden" name="wizard" value="1">
+                    <input type="hidden" name="wizard_step" value="1">
+                @else
+                    <input type="hidden" name="complet" value="1">
+                @endif
+            </form>
         </div>
         <aside class="{{ $wizard ? 'col-xl-6' : 'col-xl-4' }}" @if ($wizard) data-wizard-preview @endif>
             <div class="cvora-preview-sticky vstack gap-3">
@@ -323,7 +362,7 @@
                 @endif
                 <div class="card cvora-a4-card">
                     <div class="d-flex align-items-center justify-content-between gap-2 border-bottom px-3 py-2">
-                        <p class="mb-0 small fw-semibold">Aperçu A4</p>
+                        <p class="mb-0 small fw-semibold">Aperçu A4 · <span data-template-name>{{ $resume->template?->name }}</span></p>
                         <a class="small" href="{{ route('cvs.preview', $resume) }}" target="_blank" rel="noopener">Ouvrir</a>
                     </div>
                     <div class="cvora-a4-frame" data-a4-frame>

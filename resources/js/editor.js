@@ -140,6 +140,18 @@ if (form) {
         field.addEventListener('input', schedule);
         field.addEventListener('change', schedule);
     });
+    const templateName = document.querySelector('[data-template-name]');
+    const templateSelect = document.querySelector('[name="template_id"]');
+    const showTemplateName = () => {
+        if (!templateName || !templateSelect) {
+            return;
+        }
+
+        const option = templateSelect.options[templateSelect.selectedIndex];
+        templateName.textContent = option ? option.textContent.replace('· premium', '').trim() : '';
+    };
+    templateSelect?.addEventListener('change', showTemplateName);
+
     document.querySelectorAll('[data-theme-swatch]').forEach((swatch) => {
         swatch.addEventListener('click', () => {
             const color = document.querySelector('[name="theme[primary]"]');
@@ -610,7 +622,7 @@ if (form) {
 
             try {
                 const body = new FormData();
-                const selected = form.querySelector('[name="template_id"]');
+                const selected = document.querySelector('[name="template_id"]');
 
                 if (selected) {
                     body.set('template_id', selected.value);
